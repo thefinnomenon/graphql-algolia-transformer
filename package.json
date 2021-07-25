@@ -1,0 +1,58 @@
+{
+  "name": "graphql-algolia-transformer",
+  "version": "1.0.0",
+  "description": "Amplify GraphQL @algolia transformer",
+  "author": "Chris Finn <chris@thefinnternet.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc && cd algolia-lambda/package && zip -qr ../deployment-package.zip . && cd .. && zip -qg  deployment-package.zip python_algolia_function.py && mv deployment-package.zip ../lib/algolia-lambda.zip",
+    "test": "jest",
+    "prepublishOnly": "npm run build",
+    "preversion": "npm run test",
+    "version": "auto-changelog --breaking-pattern \"BREAKING CHANGE:\" -p && git add CHANGELOG.md",
+    "postversion": "git push origin master --tags && npm publish",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\""
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thefinnomenon/graphql-algolia-transformer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/thefinnomenon/graphql-algolia-transformer/issues"
+  },
+  "homepage": "https://github.com/thefinnomenon/graphql-algolia-transformer#readme",
+  "keywords": [
+    "aws",
+    "amplify",
+    "grapqhl",
+    "algolia",
+    "search",
+    "serverless",
+    "transformer",
+    "dynamodb"
+  ],
+  "devDependencies": {
+    "auto-changelog": "^2.2.1",
+    "graphql-appsync-transformer": "^1.0.35",
+    "graphql-dynamodb-transformer": "^6.19.16",
+    "jest": "^26.6.0",
+    "prettier": "^2.1.2",
+    "ts-jest": "^26.4.1",
+    "typescript": "^4.0.3"
+  },
+  "dependencies": {
+    "@aws-amplify/graphql-transformer-core": "^0.7.0",
+    "@aws-amplify/graphql-transformer-interfaces": "^1.7.0",
+    "@aws-cdk/aws-appsync": "^1.113.0",
+    "@aws-cdk/aws-dynamodb": "^1.113.0",
+    "@aws-cdk/aws-lambda-event-sources": "^1.113.0",
+    "@aws-cdk/core": "^1.113.0",
+    "graphql": "^14.5.8",
+    "graphql-transformer-common": "^4.17.11",
+    "graphql-transformer-core": "6.28.13"
+  }
+}

@@ -67,9 +67,7 @@ def get_table_name_from_arn(arn):
     return arn.split(':')[5].split('/')[1]
 
 # Configure Index Settings
-# https://www.algolia.com/doc/guides/sending-and-managing-data/prepare-your-data/how-to/setting-searchable-attributes/
-# https://www.algolia.com/doc/api-reference/api-parameters/attributesForFaceting/
-# https://www.algolia.com/doc/api-reference/api-parameters/customRanking/
+# https://www.algolia.com/doc/api-reference/settings-api-parameters/
 def set_index_settings(index_name, settings):
     if not settings:
         return

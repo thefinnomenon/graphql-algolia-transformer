@@ -13,7 +13,7 @@ I made this transformer because I didn't want the monthly costs for the Elastics
 # Use
 ## Install Transform
 
-`npm install graphql-algolia-transform`
+`npm install graphql-algolia-transformer`
 
 ## Import Transform
 
@@ -24,7 +24,7 @@ I made this transformer because I didn't want the monthly costs for the Elastics
     ...
     "transformers": [
         ...,
-        "graphql-algolia-transform"
+        "graphql-algolia-transformer"
     ]
 }
 ```

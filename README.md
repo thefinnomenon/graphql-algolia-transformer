@@ -4,6 +4,9 @@
 [![npm](https://img.shields.io/npm/v/graphql-ttl-transformer)](https://www.npmjs.com/package/graphql-algolia-transformer)
 [![GitHub license](https://img.shields.io/github/license/thefinnomenon/graphql-algolia-transformer)](https://github.com/thefinnomenon/graphql-algolia-transformer/blob/master/LICENSE)
 
+# Description
+Add Serverless search to your Amplify API with Aloglia using this transformer.
+
 # Use
 ## Install Transform
 
@@ -52,6 +55,7 @@ type Comment @model @algolia(fields:{include:["content"]}) @key(name: "byPost", 
 
 - You cannot specify include and exclude in the same fields parameter.
 - The Algolia ObjectID is a concatenation of the DynamoDB keys for the object; PrimaryKey(:SortKey).
+- Automatically creates an index with the model name (e.g. Blog).
 
 ## Configure API Keys
 */amplify/backend/api/<API_NAME>/parameters.json*
@@ -68,7 +72,7 @@ type Comment @model @algolia(fields:{include:["content"]}) @key(name: "byPost", 
 }
 ```
 
-*Unfortunately, you have to define these parameters for each model that has the @algolia directive.* I can't declare the parameters AlogliaAppId and AlgoliaApiKey in each stack because it complains about the parameters name conflicting. I also tried exporting them from CustomResources.json but couldn't get it to work. This is a good issue to work on if you want to contribute.
+**Unfortunately, you have to define these parameters for each model that has the @algolia directive.** I can't declare the parameters AlogliaAppId and AlgoliaApiKey in each stack because it complains about the parameters name conflicting. I also tried exporting them from CustomResources.json but couldn't get it to work. This is a good issue to work on if you want to contribute.
 
 ## Push Changes
 `amplify push`
@@ -77,9 +81,9 @@ type Comment @model @algolia(fields:{include:["content"]}) @key(name: "byPost", 
 For querying the search indexes, use an [Algolia search client](https://www.algolia.com/developers/#integrations).
 
 ## How it works
-This directive creates an individual Lambda function for each declaration and attaches a DynamoDB stream from the respective table to the function. On receiving a stream, the function filters the fields as specified, formats the record into an Algolia payload and updates the respective Algolia instances.
+This directive creates an individual Lambda function for each declaration and attaches a DynamoDB stream from the respective table to the function. On receiving a stream, the function filters the fields as specified, formats the record into an Algolia payload and updates the Algolia index with the model name (if it doesn't exist, it creates it).
 
-## Contribute 🦸
+## Contribute
 
 Contributions are more than welcome!
 

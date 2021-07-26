@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Parameters:
+  ALGOLIA_APP_ID:
+    Type: String
+    Description: Algolia App ID.
+    Default: ''
+  ALGOLIA_API_KEY:
+    Type: String
+    Description: Algolia API Key.
+    Default: ''
+  ALGOLIA_FIELDS:
+    Type: String
+    Description: Algolia Fields.
+    Default: '{"include": ["two"]}'
+    # Default: '{"exclude": ["one", "three"]}'
+  ALGOLIA_SETTINGS:
+    Type: String
+    Description: Algolia Settings.
+    Default: ''
+Resources:
+  ProcessDynamoDBStream:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: algolia-lambda/package/
+      Handler: python_algolia_function.lambda_handler
+      Runtime: python3.8
+      Timeout: 10
+      Policies: AWSLambdaDynamoDBExecutionRole
+      Environment:
+        Variables:
+          ALGOLIA_APP_ID: !Ref ALGOLIA_APP_ID
+          ALGOLIA_API_KEY: !Ref ALGOLIA_API_KEY
+          ALGOLIA_FIELDS: !Ref ALGOLIA_FIELDS
+          ALGOLIA_SETTINGS: !Ref ALGOLIA_SETTINGS
+      Events:
+        Stream:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt DynamoDBTable.StreamArn
+            BatchSize: 100
+            StartingPosition: TRIM_HORIZON
+
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      AttributeDefinitions: 
+        - AttributeName: id
+          AttributeType: S
+      KeySchema: 
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput: 
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES

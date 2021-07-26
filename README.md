@@ -87,18 +87,15 @@ For querying the search indexes, use an [Algolia search client](https://www.algo
 This directive creates an individual Lambda function for each declaration and attaches a DynamoDB stream from the respective table to the function. On receiving a stream, the function filters the fields as specified, formats the record into an Algolia payload and updates the Algolia index with the model name (if it doesn't exist, it creates it).
 
 ## Contribute
-
 Contributions are more than welcome!
 
 Please feel free to create, comment and of course solve some of the issues. To get started you can also go for the easier issues marked with the `good first issue` label if you like.
 
 ### Development
-
-- For modifying the Lambda function, I found it easiest to setup a SAM build and copy the code over after getting it working there.
+- `npm run lambda` uses SAM to invoke the Lambda function. You need to supply an App ID and API Key in `template.yaml`.
 - `amplify api gql-compile` lets you check the stack outputs without having to go through the lengthy push process.
 
 ## License
-
 The [MIT License](LICENSE)
 
 ## Credits

@@ -7,6 +7,9 @@
 # Description
 Add Serverless search to your Amplify API with Aloglia using this transformer.
 
+# @algolia vs @searchable
+I made this transformer because I didn't want the monthly costs for the Elasticsearch instances used by @searchable. Algolia is effortless to get started and is free for up to 10k records and searches per month which makes it perfect for MVPs. As your app grows, you should probably re-evaluate the pricing difference between Elasticsearch and Algolia but this point is probably when you reach ~500k records and searches. Also, Algolia comes with nice clientside search UIs that you can just drop into your app. An obvious downside to using Algolia instead of Elasticsearch is that it takes you outside of the AWS world but I think that it's worth the tradeoff.
+
 # Use
 ## Install Transform
 

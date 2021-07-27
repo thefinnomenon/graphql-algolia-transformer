@@ -21,9 +21,9 @@ I made this transformer because I didn't want the monthly costs for the Elastics
 
 ```json
 {
-    ...
+    . . .
     "transformers": [
-        ...,
+        . . .,
         "graphql-algolia-transformer"
     ]
 }
@@ -34,7 +34,7 @@ I made this transformer because I didn't want the monthly costs for the Elastics
 Append `@algolia(fields?: {include?: [string], exclude?: [string]})` to target objects.
 
 ```graphql
-type Blog @model @algolia(fields:{include:["name"]}) {
+type Blog @model {
   id: ID!
   name: String!
   posts: [Post] @connection(keyName: "byBlog", fields: ["id"])
@@ -48,7 +48,7 @@ type Post @model @algolia(fields:{include:["title"]}) @key(name: "byBlog", field
   comments: [Comment] @connection(keyName: "byPost", fields: ["id"])
 }
 
-type Comment @model @algolia(fields:{include:["content"]}) @key(name: "byPost", fields: ["postID", "content"]) {
+type Comment @model @key(name: "byPost", fields: ["postID", "content"]) {
   id: ID!
   postID: ID!
   post: Post @connection(fields: ["postID"])
@@ -65,13 +65,9 @@ type Comment @model @algolia(fields:{include:["content"]}) @key(name: "byPost", 
 
 ```json
 {
-  ...
-  "AlgoliaAppIdBlog": "APPID",
-  "AlgoliaApiKeyBlog": "APIKEY",
+  . . .
   "AlgoliaAppIdPost": "APPID",
   "AlgoliaApiKeyPost": "APIKEY",
-  "AlgoliaAppIdComment": "APPID",
-  "AlgoliaApiKeyComment": "APIKEY"
 }
 ```
 

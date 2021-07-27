@@ -1,0 +1,7 @@
+{
+  "AppSyncApiName": "blog",
+  "DynamoDBBillingMode": "PAY_PER_REQUEST",
+  "DynamoDBEnableServerSideEncryption": false,
+  "AlgoliaAppIdPost": "APP_ID",
+  "AlgoliaApiKeyPost": "API_KEY"
+}

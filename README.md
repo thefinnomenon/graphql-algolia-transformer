@@ -21,9 +21,7 @@ I made this transformer because I didn't want the monthly costs for the Elastics
 
 ```json
 {
-    . . .
     "transformers": [
-        . . .,
         "graphql-algolia-transformer"
     ]
 }
@@ -65,7 +63,6 @@ type Comment @model @key(name: "byPost", fields: ["postID", "content"]) {
 
 ```json
 {
-  . . .
   "AlgoliaAppIdPost": "APPID",
   "AlgoliaApiKeyPost": "APIKEY",
 }
@@ -78,6 +75,15 @@ type Comment @model @key(name: "byPost", fields: ["postID", "content"]) {
 
 ## Query
 For querying the search indexes, use an [Algolia search client](https://www.algolia.com/developers/#integrations).
+
+Algolia also supports [Geo-searching](https://www.algolia.com/doc/guides/building-search-ui/ui-and-ux-patterns/geo-search/react/) but to use them you need to pass the lat and lng in this format,
+
+```
+"_geoloc": {
+  "lat": 40.639751,
+  "lng": -73.778925
+}
+```
 
 ## How it works
 This directive creates an individual Lambda function for each declaration and attaches a DynamoDB stream from the respective table to the function. On receiving a stream, the function filters the fields as specified, formats the record into an Algolia payload and updates the Algolia index with the model name (if it doesn't exist, it creates it).

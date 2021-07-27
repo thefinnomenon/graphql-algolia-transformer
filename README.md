@@ -76,7 +76,7 @@ type Comment @model @key(name: "byPost", fields: ["postID", "content"]) {
 ## Query
 For querying the search indexes, use an [Algolia search client](https://www.algolia.com/developers/#integrations).
 
-Algolia also supports [Geo-searching](https://www.algolia.com/doc/guides/building-search-ui/ui-and-ux-patterns/geo-search/react/) but to use them you need to pass the lat and lng in this format,
+Algolia also supports [Geo-searching](https://www.algolia.com/doc/guides/building-search-ui/ui-and-ux-patterns/geo-search/react/) but to use it you need to pass the lat and lng in this format,
 
 ```
 "_geoloc": {

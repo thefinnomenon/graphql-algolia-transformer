@@ -5,7 +5,7 @@
 [![GitHub license](https://img.shields.io/github/license/thefinnomenon/graphql-algolia-transformer)](https://github.com/thefinnomenon/graphql-algolia-transformer/blob/master/LICENSE)
 
 # Description
-Add Serverless search to your Amplify API with Aloglia using this transformer.
+Add Serverless search to your Amplify API with Algolia using this transformer.
 
 # @algolia vs @searchable
 I made this transformer because I didn't want the monthly costs for the Elasticsearch instances used by @searchable. Algolia is effortless to get started and is free for up to 10k records and searches per month which makes it perfect for MVPs. As your app grows, you should probably re-evaluate the pricing difference between Elasticsearch and Algolia but this point is probably when you reach ~500k records/searches. Also, Algolia comes with nice client-side search UIs that you can just drop into your app. An obvious downside to using Algolia instead of Elasticsearch is that it takes you outside of the AWS world but I think that it's worth the tradeoff.
@@ -68,7 +68,7 @@ type Comment @model @key(name: "byPost", fields: ["postID", "content"]) {
 }
 ```
 
-**Unfortunately, you have to define these parameters for each model that has the @algolia directive.** I can't declare the parameters AlogliaAppId and AlgoliaApiKey in each stack because it complains about the parameters name conflicting. I also tried exporting them from CustomResources.json but couldn't get it to work. This is a good issue to work on if you want to contribute.
+**Unfortunately, you have to define these parameters for each model that has the @algolia directive.** I can't declare the parameters AlgoliaAppId and AlgoliaApiKey in each stack because it complains about the parameters name conflicting. I also tried exporting them from CustomResources.json but couldn't get it to work. This is a good issue to work on if you want to contribute.
 
 ## Push Changes
 `amplify push`

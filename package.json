@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc && cd algolia-lambda/package && zip -qr ../deployment-package.zip . && cd .. && zip -qg  deployment-package.zip python_algolia_function.py && mv deployment-package.zip ../lib/algolia-lambda.zip",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "lambda": "cp algolia-lambda/python_algolia_function.py algolia-lambda/package && sam local invoke -e ./events/event.json && rm algolia-lambda/package/python_algolia_function.py",
     "prepublishOnly": "npm run build",
     "preversion": "npm run test",

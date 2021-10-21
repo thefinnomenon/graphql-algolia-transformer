@@ -31,7 +31,7 @@ I made this transformer because I didn't want the monthly costs for the Elastics
 
 ## Use @algolia directive
 
-Append `@algolia(fields?: {include?: [string], exclude?: [string]})` to target objects.
+Append `@algolia(fields?: {include?: [string], exclude?: [string]}, functionName?: String, roleName?: String)` to target objects.
 
 ```graphql
 type Blog @model {
@@ -88,8 +88,25 @@ Contributions are more than welcome!
 Please feel free to create, comment and of course solve some of the issues. To get started you can also go for the easier issues marked with the `good first issue` label if you like.
 
 ### Development
+#### Algolia Lambda
 - `npm run lambda` uses SAM to invoke the Lambda function. You need to supply an App ID and API Key in `template.yaml`.
+- Modify the event you are sending in `events/event.json`.
+
+#### Transformer
+- Initialize an amplify project and add an API
+- Import the transformer with the absolute path
+```
+// amplify/backend/api/<API_NAME>/transform.conf.json
+{
+    ...
+    "transformers": [
+        "file:///absolute/path/to/graphql-algolia-transform/"
+    ]
+}
+```
+- Rebuild the transformer with `npm run build`.
 - `amplify api gql-compile` lets you check the stack outputs without having to go through the lengthy push process.
+- Check `amplify/backend/api/<API>/build/stacks/AlgoliaStack<MODEL>` for expected outputs.
 
 ## License
 The [MIT License](LICENSE)

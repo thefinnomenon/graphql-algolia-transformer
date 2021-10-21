@@ -17,6 +17,8 @@ interface AlgoliaSettings {
 
 interface AlgoliaDirectiveArgs {
   fields?: FieldList;
+  roleName?: String;
+  functionName?: String;
   settings?: AlgoliaSettings;
 }
 
@@ -30,7 +32,7 @@ export class AlgoliaTransformer extends Transformer {
     super(
       `graphql-algolia-transform`,
       gql`
-        directive @algolia(fields: FieldList, settings: AlgoliaSettings) on OBJECT
+        directive @algolia(fields: FieldList, functionName: String, roleName: String, settings: AlgoliaSettings) on OBJECT
         input FieldList {
           include: [String]
           exclude: [String]

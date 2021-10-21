@@ -31,8 +31,8 @@ export class ResourceFactory {
     }
 
     public makeParams(objectName, directiveArgs) {
-        const { fields = '', settings = '' } = directiveArgs;
-
+        const { fields = '', roleName = `AlgoliaLambdaRole${objectName}`, functionName = `AlgoliaLambda${objectName}`, settings = '' } = directiveArgs;
+        
         return {
             [this.AlgoliaAppId]: new StringParameter({
                 Description: 'Algolia App ID.',
@@ -56,7 +56,7 @@ export class ResourceFactory {
             }),
             [this.AlgoliaLambdaFunctionName]: new StringParameter({
                 Description: 'The name of the Algolia lambda function.',
-                Default: `DynamoDBStreamToAlgoliaFn${objectName}`,
+                Default: functionName,
             }),
             [this.AlgoliaLambdaFunctionHandlerName]: new StringParameter({
                 Description: 'The name of the Algolia lambda handler.',
@@ -64,7 +64,7 @@ export class ResourceFactory {
             }),            
             [this.AlgoliaLambdaIAMRoleName]: new StringParameter({
                 Description: 'The name of the Algolia lambda function IAM role.',
-                Default: `AlgoliaLambdaIAMRole${objectName}`,
+                Default: roleName,
             }),
             [this.DebugAlgoliaLambda]: new NumberParameter({
                 Description: 'Enable debug logs for the Dynamo -> Algolia lambda.',
@@ -79,6 +79,7 @@ export class ResourceFactory {
      */
     public initTemplate(objectName, directiveArgs): Template {
         this.resetParams();
+        const { functionName = `AlgoliaLambda${objectName}`, roleName = `AlgoliaLambdaRole${objectName}` } = directiveArgs;
 
         // Set Object specific names
         this.AlgoliaAppId = `${this.AlgoliaAppId}${objectName}`;
@@ -86,9 +87,9 @@ export class ResourceFactory {
         this.AlgoliaFields = `${this.AlgoliaFields}${objectName}`;
         this.AlgoliaSettings = `${this.AlgoliaSettings}${objectName}`;
         this.AlgoliaLambdaRuntime = `${this.AlgoliaLambdaRuntime}${objectName}`;
-        this.AlgoliaLambdaFunctionName = `${this.AlgoliaLambdaFunctionName}${objectName}`;
+        this.AlgoliaLambdaFunctionName = functionName;
         this.AlgoliaLambdaFunctionHandlerName = `${this.AlgoliaLambdaFunctionHandlerName}${objectName}`;
-        this.AlgoliaLambdaIAMRoleName = `${this.AlgoliaLambdaIAMRoleName}${objectName}`;
+        this.AlgoliaLambdaIAMRoleName = roleName;
         this.AlgoliaLambdaIAMRoleLogicalID = `${this.AlgoliaLambdaIAMRoleLogicalID}${objectName}`;
         this.AlgoliaLambdaFunctionLogicalID = `${this.AlgoliaLambdaFunctionLogicalID}${objectName}`;
         this.DebugAlgoliaLambda = `${this.DebugAlgoliaLambda}${objectName}`;
@@ -96,7 +97,7 @@ export class ResourceFactory {
         return {
             Parameters: this.makeParams(objectName, directiveArgs),
             Resources: {
-                [this.AlgoliaLambdaIAMRoleLogicalID]: this.makeStreamingLambdaIAMRole(objectName),
+                [this.AlgoliaLambdaIAMRoleLogicalID]: this.makeStreamingLambdaIAMRole(),
                 [this.AlgoliaLambdaFunctionLogicalID]: this.makeDynamoDBStreamingFunction(objectName),
             },
             Mappings: this.getLayerMapping(objectName)
@@ -189,10 +190,7 @@ export class ResourceFactory {
                     Fn.Join('.', [this.AlgoliaLambdaFunctionLogicalID, 'zip']),
                 ]),
             },
-            FunctionName: this.joinWithEnv('-', [
-                Fn.Ref(this.AlgoliaLambdaFunctionName),
-                Fn.GetAtt(ResourceConstants.RESOURCES.GraphQLAPILogicalID, 'ApiId'),
-            ]),
+            FunctionName: Fn.Ref(this.AlgoliaLambdaFunctionName),
             Handler: Fn.Ref(this.AlgoliaLambdaFunctionHandlerName),
             Role: Fn.GetAtt(this.AlgoliaLambdaIAMRoleLogicalID, 'Arn'),
             Runtime: Fn.Ref(this.AlgoliaLambdaRuntime),
@@ -219,25 +217,13 @@ export class ResourceFactory {
         }).dependsOn([this.AlgoliaLambdaFunctionLogicalID]);
     }
 
-    private joinWithEnv(separator: string, listToJoin: any[]) {
-        return Fn.If(
-            ResourceConstants.CONDITIONS.HasEnvironmentParameter,
-            Fn.Join(separator, [...listToJoin, Fn.Ref(ResourceConstants.PARAMETERS.Env)]),
-            Fn.Join(separator, listToJoin),
-        );
-    }
-
     /**
      * Create a single role that has access to all the resources created by the
      * transform.
-     * @param name  The name of the IAM role to create.
      */
-    public makeStreamingLambdaIAMRole(objectName) {
+    public makeStreamingLambdaIAMRole() {
         return new IAM.Role({
-            RoleName: this.joinWithEnv('-', [
-                Fn.Ref(this.AlgoliaLambdaIAMRoleName),
-                Fn.GetAtt(ResourceConstants.RESOURCES.GraphQLAPILogicalID, 'ApiId'),
-            ]),
+            RoleName: Fn.Ref(this.AlgoliaLambdaIAMRoleName),
             AssumeRolePolicyDocument: {
                 Version: '2012-10-17',
                 Statement: [

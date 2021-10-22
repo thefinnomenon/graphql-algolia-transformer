@@ -82,18 +82,20 @@ type Comment @model @key(name: "byPost", fields: ["postID", "content"]) {
 ### Example
 Check out [the schema](./examples/blog/amplify/backend/api/blog/schema.graphql) for the searchable blog example.
 
-## Configure API Keys
+## Configure Project ID & API Keys
 */amplify/backend/api/<API_NAME>/parameters.json*
 
 ```json
 {
   . . .
+  "AlgoliaProjectIdPost": "PROJECT_NAME",
   "AlgoliaAppIdPost": "APPID",
   "AlgoliaApiKeyPost": "APIKEY",
 }
 ```
+The `AlgoliaProjectId` is necessary to autogenerate unique functions, rolesn & indexes across projects (e.g. searchable Posts model for project 1 and searchable Posts model for project 2).
 
-**Unfortunately, you have to define these parameters for each model that has the @algolia directive.** I can't declare the parameters AlogliaAppId and AlgoliaApiKey in each stack because it complains about the parameters name conflicting. I also tried exporting them from CustomResources.json but couldn't get it to work. This is a good issue to work on if you want to contribute.
+**Unfortunately, you have to define these parameters for each model that has the @algolia directive.** I can't declare the parameters in each stack because it complains about the parameters name conflicting. I also tried exporting them from CustomResources.json but couldn't get it to work. This is a good issue to work on if you want to contribute.
 
 ## Push Changes
 `amplify push`

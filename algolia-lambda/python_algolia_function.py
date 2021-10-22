@@ -37,6 +37,10 @@ try:
 except:
     raise ValueError('If you specify settings, it must at least have an object of settings.')
 
+ALGOLIA_PROJECT_ID = os.getenv('ALGOLIA_PROJECT_ID', default = '')
+if ALGOLIA_PROJECT_ID == '':
+    raise ValueError('You need to provide ALGOLIA_PROJECT_ID in order to guarantee uniqueness.')
+
 ALGOLIA_APP_ID = os.getenv('ALGOLIA_APP_ID', default = '')
 ALGOLIA_API_KEY = os.getenv('ALGOLIA_API_KEY', default = '')
 if ALGOLIA_APP_ID == '' or ALGOLIA_API_KEY == '':
@@ -135,7 +139,7 @@ def _lambda_handler(event, context):
         doc_table = ddb_table_name.lower()
         doc_table_parts = doc_table.split('-')
         doc_index_name = doc_table_parts[0] if len(doc_table_parts) > 0  else doc_table
-        index_name = doc_index_name
+        index_name = ALGOLIA_PROJECT_ID + '-' + doc_index_name
 
         # Dispatch according to event TYPE
         event_name = record['eventName'].upper()  # INSERT, MODIFY, REMOVE
@@ -180,7 +184,7 @@ def _lambda_handler(event, context):
         if is_ddb_insert_or_update:
             operation = {   
                 'action': 'updateObject',
-                'indexName': doc_index_name,
+                'indexName': index_name,
                 'body': doc_fields
             }
 
@@ -188,7 +192,7 @@ def _lambda_handler(event, context):
         elif is_ddb_delete:
             operation = {   
                 'action': 'deleteObject',
-                'indexName': doc_index_name,
+                'indexName': index_name,
                 'body': doc_fields
             }
         

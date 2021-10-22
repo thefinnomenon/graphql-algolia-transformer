@@ -4,6 +4,7 @@ import { Fn, Lambda, StringParameter, NumberParameter } from 'cloudform-types';
 import { ResourceConstants, ModelResourceIDs } from 'graphql-transformer-common';
 
 export class ResourceFactory {
+    AlgoliaProjectId = "AlgoliaProjectId";
     AlgoliaAppId = "AlgoliaAppId";
     AlgoliaApiKey = "AlgoliaApiKey";
     AlgoliaFields = "AlgoliaFields";
@@ -17,6 +18,7 @@ export class ResourceFactory {
     DebugAlgoliaLambda ='DebugAlgoliaLambda';
 
     private resetParams() {
+        this.AlgoliaProjectId = "AlgoliaProjectId";
         this.AlgoliaAppId = "AlgoliaAppId";
         this.AlgoliaApiKey = "AlgoliaApiKey";
         this.AlgoliaFields = "AlgoliaFields";
@@ -34,6 +36,10 @@ export class ResourceFactory {
         const { fields = '', roleName = `AlgoliaLambdaRole${objectName}`, functionName = `AlgoliaLambda${objectName}`, settings = '' } = directiveArgs;
         
         return {
+            [this.AlgoliaProjectId]: new StringParameter({
+                Description: 'Algolia Project ID.',
+                Default: "",
+            }),
             [this.AlgoliaAppId]: new StringParameter({
                 Description: 'Algolia App ID.',
                 Default: "",
@@ -82,6 +88,7 @@ export class ResourceFactory {
         const { functionName = `AlgoliaLambda${objectName}`, roleName = `AlgoliaLambdaRole${objectName}` } = directiveArgs;
 
         // Set Object specific names
+        this.AlgoliaProjectId = `${this.AlgoliaProjectId}${objectName}`;
         this.AlgoliaAppId = `${this.AlgoliaAppId}${objectName}`;
         this.AlgoliaApiKey = `${this.AlgoliaApiKey}${objectName}`;
         this.AlgoliaFields = `${this.AlgoliaFields}${objectName}`;
@@ -190,7 +197,10 @@ export class ResourceFactory {
                     Fn.Join('.', [this.AlgoliaLambdaFunctionLogicalID, 'zip']),
                 ]),
             },
-            FunctionName: Fn.Ref(this.AlgoliaLambdaFunctionName),
+            FunctionName: Fn.Join('-', [
+                Fn.Ref(this.AlgoliaProjectId), 
+                Fn.Ref(this.AlgoliaLambdaFunctionName)
+            ]),
             Handler: Fn.Ref(this.AlgoliaLambdaFunctionHandlerName),
             Role: Fn.GetAtt(this.AlgoliaLambdaIAMRoleLogicalID, 'Arn'),
             Runtime: Fn.Ref(this.AlgoliaLambdaRuntime),
@@ -198,6 +208,7 @@ export class ResourceFactory {
             Environment: {
                 Variables: {
                     DEBUG: Fn.Ref(this.DebugAlgoliaLambda),
+                    ALGOLIA_PROJECT_ID: Fn.Ref(this.AlgoliaProjectId),
                     ALGOLIA_APP_ID: Fn.Ref(this.AlgoliaAppId),
                     ALGOLIA_API_KEY: Fn.Ref(this.AlgoliaApiKey),
                     ALGOLIA_FIELDS: Fn.Ref(this.AlgoliaFields),
@@ -223,7 +234,10 @@ export class ResourceFactory {
      */
     public makeStreamingLambdaIAMRole() {
         return new IAM.Role({
-            RoleName: Fn.Ref(this.AlgoliaLambdaIAMRoleName),
+            RoleName: Fn.Join('-', [
+                Fn.Ref(this.AlgoliaProjectId),
+                Fn.Ref(this.AlgoliaLambdaIAMRoleName)
+            ]),
             AssumeRolePolicyDocument: {
                 Version: '2012-10-17',
                 Statement: [

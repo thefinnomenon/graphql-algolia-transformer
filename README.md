@@ -31,7 +31,23 @@ I made this transformer because I didn't want the monthly costs for the Elastics
 
 ## Use @algolia directive
 
-Append `@algolia(fields?: {include?: [string], exclude?: [string]}, functionName?: String, roleName?: String)` to target objects.
+Append to target models
+```
+@algolia(
+          fields?: {
+            include?: [string],
+            exclude?: [string]
+          }, 
+          settings: {
+            forwardToReplicas?: Boolean, 
+            requestOptions?: AWSJSON, 
+            settings: AWSJSON,
+          }, 
+          functionName?: String, 
+          roleName?: String
+        }
+)
+``` 
 
 ```graphql
 type Blog @model {
@@ -57,8 +73,14 @@ type Comment @model @key(name: "byPost", fields: ["postID", "content"]) {
 ```
 
 - You cannot specify include and exclude in the same fields parameter.
+- Declare Algolia settings https://www.algolia.com/doc/api-reference/api-methods/set-settings/#parameters
+- Double check your Algolia settings (if specified) because they arent's validated until they are used in the Lambda function and can lead to a tricky
+  problem to track down. If you create an entry on a model with the @algolia directive and no index is made in Algolia, check the Lambda function logs.
 - The Algolia ObjectID is a concatenation of the DynamoDB keys for the object; PrimaryKey(:SortKey).
-- Automatically creates an index with the model name (e.g. Blog).
+- Automatically creates an index with the model name (e.g. post).
+
+### Example
+Check out [the schema](./examples/blog/amplify/backend/api/blog/schema.graphql) for the searchable blog example.
 
 ## Configure API Keys
 */amplify/backend/api/<API_NAME>/parameters.json*

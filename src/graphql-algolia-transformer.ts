@@ -8,18 +8,11 @@ interface FieldList {
   include?: [string];
   exclude?: [string];
 }
-
-interface AlgoliaSettings {
-  settings: {[key: string]: any};
-  forwardToReplicas?: boolean;
-  requestOptions?: {[key: string]: any};
-}
-
 interface AlgoliaDirectiveArgs {
   fields?: FieldList;
   roleName?: String;
   functionName?: String;
-  settings?: AlgoliaSettings;
+  settings?: String;
 }
 
 /**
@@ -32,15 +25,10 @@ export class AlgoliaTransformer extends Transformer {
     super(
       `graphql-algolia-transform`,
       gql`
-        directive @algolia(fields: FieldList, functionName: String, roleName: String, settings: AlgoliaSettings) on OBJECT
+        directive @algolia(fields: FieldList, functionName: String, roleName: String, settings: AWSJSON) on OBJECT
         input FieldList {
           include: [String]
           exclude: [String]
-        }
-        input AlgoliaSettings {
-          settings: String
-          forwardToReplicas: Boolean
-          requestOptions: String
         }
       `,
     );

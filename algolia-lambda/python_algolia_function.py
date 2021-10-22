@@ -68,12 +68,16 @@ def get_table_name_from_arn(arn):
 
 # Configure Index Settings
 # https://www.algolia.com/doc/api-reference/settings-api-parameters/
-def set_index_settings(index_name, settings):
-    if not settings:
+def set_index_settings(index_name, opts):
+    if not opts:
         return
-    logger.debug('Configuring Index: %s', settings)
+    logger.debug('Configuring Index: %s', opts)
+    if 'settings' not in opts:
+        raise ValueError('You need to provide settings.settings object if specifying settings.')
+    settings = opts['settings']
+    opts.pop('settings')
     index = client.init_index(index_name)
-    index.set_settings(settings).wait()
+    index.set_settings(settings, opts).wait()
 
 # Configure Indexed Fields
 # https://www.algolia.com/doc/guides/sending-and-managing-data/prepare-your-data/how-to/reducing-object-size/

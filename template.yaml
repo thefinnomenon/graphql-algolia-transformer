@@ -18,6 +18,10 @@ Parameters:
     Type: String
     Description: Algolia Settings.
     Default: ''
+  ALGOLIA_PROJECT_ID:
+    Type: String
+    Description: Algolia Project ID.
+    Default: ''
 Resources:
   ProcessDynamoDBStream:
     Type: AWS::Serverless::Function
@@ -33,6 +37,7 @@ Resources:
           ALGOLIA_API_KEY: !Ref ALGOLIA_API_KEY
           ALGOLIA_FIELDS: !Ref ALGOLIA_FIELDS
           ALGOLIA_SETTINGS: !Ref ALGOLIA_SETTINGS
+          ALGOLIA_PROJECT_ID: !Ref ALGOLIA_PROJECT_ID
       Events:
         Stream:
           Type: DynamoDB

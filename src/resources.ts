@@ -198,8 +198,9 @@ export class ResourceFactory {
                 ]),
             },
             FunctionName: Fn.Join('-', [
-                Fn.Ref(this.AlgoliaProjectId), 
-                Fn.Ref(this.AlgoliaLambdaFunctionName)
+                Fn.Ref(this.AlgoliaProjectId),
+                Fn.Ref(this.AlgoliaLambdaFunctionName),
+                Fn.Ref('env')
             ]),
             Handler: Fn.Ref(this.AlgoliaLambdaFunctionHandlerName),
             Role: Fn.GetAtt(this.AlgoliaLambdaIAMRoleLogicalID, 'Arn'),
@@ -236,7 +237,8 @@ export class ResourceFactory {
         return new IAM.Role({
             RoleName: Fn.Join('-', [
                 Fn.Ref(this.AlgoliaProjectId),
-                Fn.Ref(this.AlgoliaLambdaIAMRoleName)
+                Fn.Ref(this.AlgoliaLambdaIAMRoleName),
+                Fn.Ref('env')
             ]),
             AssumeRolePolicyDocument: {
                 Version: '2012-10-17',

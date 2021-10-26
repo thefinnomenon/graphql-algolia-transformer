@@ -139,7 +139,8 @@ def _lambda_handler(event, context):
         doc_table = ddb_table_name.lower()
         doc_table_parts = doc_table.split('-')
         doc_index_name = doc_table_parts[0] if len(doc_table_parts) > 0  else doc_table
-        index_name = ALGOLIA_PROJECT_ID + '-' + doc_index_name
+        doc_index_suffix = "-" + doc_table_parts[-1] if len(doc_table_parts) > 1  else ''
+        index_name = ALGOLIA_PROJECT_ID + '-' + doc_index_name + doc_index_suffix
 
         # Dispatch according to event TYPE
         event_name = record['eventName'].upper()  # INSERT, MODIFY, REMOVE

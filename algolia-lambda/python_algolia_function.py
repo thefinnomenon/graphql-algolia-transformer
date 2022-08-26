@@ -98,9 +98,8 @@ def set_indexed_fields(all_fields):
 # ObjectID = PrimaryKey(:SortKey)
 def generateObjectID(keys):
     objectID = ''
-    for key in keys:
-        objectID += keys[key] + ':'
-    return objectID[:-1]
+    objectID = ":".join(map(lambda key: str(keys[key]), keys))
+    return objectID
 
 # Lamba Handler
 def _lambda_handler(event, context):

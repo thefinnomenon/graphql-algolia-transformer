@@ -2,6 +2,12 @@
     "Version": 5,
     "ElasticsearchWarning": true,
     "transformers": [
-        "file:////Users/ollie/Work/graphql-algolia-transformer/"
-    ]
+        "//Users/ollie/Work/graphql-algolia-transformer"
+    ],
+    "ResolverConfig": {
+        "project": {
+            "ConflictHandler": "AUTOMERGE",
+            "ConflictDetection": "VERSION"
+        }
+    }
 }

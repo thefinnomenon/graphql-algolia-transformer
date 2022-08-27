@@ -1,79 +1,221 @@
-import { Transformer, TransformerContext, getDirectiveArguments, gql, InvalidDirectiveError } from 'graphql-transformer-core';
-import { DirectiveNode, ObjectTypeDefinitionNode } from 'graphql';
-import { ResourceFactory } from './resources';
-import { SearchableResourceIDs } from 'graphql-transformer-common';
-import path = require('path');
+import {
+  TransformerPluginBase, InvalidDirectiveError, MappingTemplate, DirectiveWrapper,
+} from '@aws-amplify/graphql-transformer-core';
+import {
+  DataSourceProvider,
+  TransformerContextProvider,
+  TransformerPrepareStepContextProvider,
+  TransformerSchemaVisitStepContextProvider,
+  TransformerTransformSchemaStepContextProvider,
+} from '@aws-amplify/graphql-transformer-interfaces';
+import { DynamoDbDataSource } from '@aws-cdk/aws-appsync';
+import { Table } from '@aws-cdk/aws-dynamodb';
+import {
+  CfnCondition, CfnParameter, Fn, IConstruct,
+} from '@aws-cdk/core';
+import { DirectiveNode, InputObjectTypeDefinitionNode, ObjectTypeDefinitionNode } from 'graphql';
+import { Expression, str } from 'graphql-mapping-template';
+import {
+  ResourceConstants,
+  getBaseType,
+  ModelResourceIDs,
+  STANDARD_SCALARS,
+  blankObject,
+  blankObjectExtension,
+  defineUnionType,
+  extensionWithFields,
+  makeField,
+  makeListType,
+  makeNamedType,
+  makeNonNullType,
+  makeInputValueDefinition,
+  graphqlName,
+  plurality,
+  toUpper,
+  ResolverResourceIDs,
+  makeDirective,
+} from 'graphql-transformer-common';
+import { createParametersStack as createParametersInStack } from './cdk/create-cfnParameters';
+// import { requestTemplate, responseTemplate, sandboxMappingTemplate } from './generate-resolver-vtl';
+// import {
+//   makeSearchableScalarInputObject,
+//   makeSearchableSortDirectionEnumObject,
+//   makeSearchableXFilterInputObject,
+//   makeSearchableXSortableFieldsEnumObject,
+//   makeSearchableXAggregateFieldEnumObject,
+//   makeSearchableXSortInputObject,
+//   makeSearchableXAggregationInputObject,
+//   makeSearchableAggregateTypeEnumObject,
+//   AGGREGATE_TYPES,
+//   extendTypeWithDirectives,
+//   DATASTORE_SYNC_FIELDS,
+// } from './definitions';
+import { setMappings } from './cdk/create-layer-cfnMapping';
+// import { createSearchableDomain, createSearchableDomainRole } from './cdk/create-searchable-domain';
+// import { createSearchableDataSource } from './cdk/create-searchable-datasource';
+import { createEventSourceMapping, createLambda, createLambdaRole } from './cdk/create-streaming-lambda';
+// import { createStackOutputs } from './cdk/create-cfnOutput';
 
-interface FieldList {
-  include?: [string];
-  exclude?: [string];
-}
-interface AlgoliaDirectiveArgs {
-  fields?: FieldList;
-  roleName?: String;
-  functionName?: String;
-  settings?: String;
-}
+const STACK_NAME = 'AlgoliaStack';
 
-/**
- * Handles the @algolia directive on OBJECT types.
- */
-export class AlgoliaTransformer extends Transformer {
-  resources: ResourceFactory;
-
+export class AlgoliaTransformer extends TransformerPluginBase {
+  searchableObjectTypeDefinitions: { node: ObjectTypeDefinitionNode; fieldName: string }[];
+  searchableObjectNames: string[];
   constructor() {
     super(
-      `graphql-algolia-transform`,
-      gql`
-        directive @algolia(fields: FieldList, functionName: String, roleName: String, settings: AWSJSON) on OBJECT
-        input FieldList {
-          include: [String]
-          exclude: [String]
-        }
+      'algolia-searchable-transformer',
+      /* GraphQL */ `
+        directive @algolia on OBJECT
       `,
     );
-    this.resources = new ResourceFactory();
+    this.searchableObjectTypeDefinitions = [];
+    this.searchableObjectNames = [];
   }
 
-  /**
-   * Given the initial input and context manipulate the context to handle this object directive.
-   * @param initial The input passed to the transform.
-   * @param ctx The accumulated context for the transform.
-   */
-  public object = (def: ObjectTypeDefinitionNode, directive: DirectiveNode, ctx: TransformerContext): void => {
-    // Validate Object
-    const modelDirective = def.directives.find(dir => dir.name.value === 'model');
-    if (!modelDirective) {
-      throw new InvalidDirectiveError('Types annotated with @algolia must also be annotated with @model.');
-    }
+  generateResolvers = (context: TransformerContextProvider): void => {
+    const { Env } = ResourceConstants.PARAMETERS;
 
-    const STACK_NAME = `AlgoliaStack${def.name.value}`;
+    const { HasEnvironmentParameter } = ResourceConstants.CONDITIONS;
 
-    // Retrieve Directive Arguments
-    const directiveArgs: AlgoliaDirectiveArgs = getDirectiveArguments(directive);    
-    
-    // Create Template & add it to the Stack
-    const template = this.resources.initTemplate(def.name.value, directiveArgs);
-    ctx.mergeResources(template.Resources);
-    ctx.mergeParameters(template.Parameters);
-    ctx.mergeMappings(template.Mappings);
-    ctx.metadata.set(
-      this.resources.AlgoliaLambdaFunctionLogicalID,
-      path.resolve(`${__dirname}/../lib/algolia-lambda.zip`),
+    const stack = context.stackManager.createStack(STACK_NAME);
+
+    setMappings(stack);
+
+    const envParam = context.stackManager.getParameter(Env) as CfnParameter;
+
+    // eslint-disable-next-line no-new
+    new CfnCondition(stack, HasEnvironmentParameter, {
+      expression: Fn.conditionNot(Fn.conditionEquals(envParam, ResourceConstants.NONE)),
+    });
+
+    const isProjectUsingDataStore = context.isProjectUsingDataStore();
+
+    stack.templateOptions.description = 'An auto-generated nested stack for searchable.';
+    stack.templateOptions.templateFormatVersion = '2010-09-09';
+
+    const parameterMap = createParametersInStack(context.stackManager.rootStack);
+
+
+    // streaming lambda role
+    const lambdaRole = createLambdaRole(context, stack, parameterMap);
+
+
+    // creates streaming lambda
+    const lambda = createLambda(
+      stack,
+      context.api,
+      parameterMap,
+      lambdaRole,
+      isProjectUsingDataStore,
     );
-    for (const resourceId of Object.keys(template.Resources)) {
-      ctx.mapResourceToStack(STACK_NAME, resourceId);
-    }
-    for (const mappingId of Object.keys(template.Mappings)) {
-      ctx.mapResourceToStack(STACK_NAME, mappingId);
+    console.log("created lambda...");
+
+    for (const def of this.searchableObjectTypeDefinitions) {
+      const type = def.node.name.value;
+      const openSearchIndexName = context.resourceHelper.getModelNameMapping(type);
+      const fields = def.node.fields?.map((f) => f.name.value) ?? [];
+      const typeName = context.output.getQueryTypeName();
+      const table = getTable(context, def.node);
+      const ddbTable = table as Table;
+      if (!ddbTable) {
+        throw new Error('Failed to find ddb table for searchable');
+      }
+
+      ddbTable.grantStreamRead(lambdaRole);
+
+      // creates event source mapping from ddb to lambda
+      if (!ddbTable.tableStreamArn) {
+        throw new Error('tableStreamArn is required on ddb table ot create event source mappings');
+      }
+      createEventSourceMapping(stack, openSearchIndexName, lambda, parameterMap, ddbTable.tableStreamArn);
+      console.log("created trigger");
+
+      // const { attributeName } = (table as any).keySchema.find((att: any) => att.keyType === 'HASH');
+      // const keyFields = getKeyFields(attributeName, table);
+
+      // if (!typeName) {
+      //   throw new Error('Query type name not found');
+      // }
+      // const resolver = context.resolvers.generateQueryResolver(
+      //   typeName,
+      //   def.fieldName,
+      //   ResolverResourceIDs.ElasticsearchSearchResolverResourceID(type),
+      //   datasource as DataSourceProvider,
+      //   MappingTemplate.s3MappingTemplateFromString(
+      //     requestTemplate(
+      //       attributeName,
+      //       getNonKeywordFields((context.output.getObject(type))as ObjectTypeDefinitionNode),
+      //       context.isProjectUsingDataStore(),
+      //       openSearchIndexName,
+      //       keyFields,
+      //     ),
+      //     `${typeName}.${def.fieldName}.req.vtl`,
+      //   ),
+      //   MappingTemplate.s3MappingTemplateFromString(
+      //     responseTemplate(context.isProjectUsingDataStore()),
+      //     `${typeName}.${def.fieldName}.res.vtl`,
+      //   ),
+      // );
+      // resolver.addToSlot(
+      //   'postAuth',
+      //   MappingTemplate.s3MappingTemplateFromString(
+      //     sandboxMappingTemplate(context.sandboxModeEnabled, fields),
+      //     `${typeName}.${def.fieldName}.{slotName}.{slotIndex}.res.vtl`,
+      //   ),
+      // );
+
+      // resolver.mapToStack(stack);
+      // context.resolvers.addResolver(typeName, def.fieldName, resolver);
     }
 
-    // Create EventSourceMapping & add it to the Stack
-    const typeName = def.name.value;
-    ctx.setResource(
-      SearchableResourceIDs.SearchableEventSourceMappingID(typeName),
-      this.resources.makeDynamoDBStreamEventSourceMapping(typeName),
-    );
-    ctx.mapResourceToStack(STACK_NAME, SearchableResourceIDs.SearchableEventSourceMappingID(typeName));
+    // createStackOutputs(stack, domain.domainEndpoint, context.api.apiId, domain.domainArn);
+
+
+
   };
+
+  object = (definition: ObjectTypeDefinitionNode, directive: DirectiveNode, ctx: TransformerSchemaVisitStepContextProvider): void => {
+    const modelDirective = definition?.directives?.find((dir) => dir.name.value === 'model');
+    const hasAuth = definition.directives?.some((dir) => dir.name.value === 'auth') ?? false;
+    if (!modelDirective) {
+      throw new InvalidDirectiveError('Types annotated with @searchable must also be annotated with @model.');
+    }
+
+    const directiveWrapped = new DirectiveWrapper(directive);
+    const directiveArguments = directiveWrapped.getArguments({}) as any;
+    let shouldMakeSearch = true;
+    let searchFieldNameOverride;
+
+    if (directiveArguments.queries) {
+      if (!directiveArguments.queries.search) {
+        shouldMakeSearch = false;
+      } else {
+        searchFieldNameOverride = directiveArguments.queries.search;
+      }
+    }
+    const fieldName = searchFieldNameOverride ?? graphqlName(`search${plurality(toUpper(definition.name.value), true)}`);
+    this.searchableObjectTypeDefinitions.push({
+      node: definition,
+      fieldName,
+    });
+  };
+
+  prepare = (ctx: TransformerPrepareStepContextProvider): void => {
+    // register search query resolvers in field mapping
+    // if no mappings are registered elsewhere, this won't do anything
+    // but if mappings are defined this will ensure the mapping is also applied to the search results
+    for (const def of this.searchableObjectTypeDefinitions) {
+      const modelName = def.node.name.value;
+      ctx.resourceHelper.getModelFieldMap(modelName).addResolverReference({ typeName: 'Query', fieldName: def.fieldName, isList: true });
+    }
+  };
+
+  
 }
+
+const getTable = (context: TransformerContextProvider, definition: ObjectTypeDefinitionNode): IConstruct => {
+  const ddbDataSource = context.dataSources.get(definition) as DynamoDbDataSource;
+  const tableName = ModelResourceIDs.ModelTableResourceID(definition.name.value);
+  const table = ddbDataSource.ds.stack.node.findChild(tableName);
+  return table;
+};

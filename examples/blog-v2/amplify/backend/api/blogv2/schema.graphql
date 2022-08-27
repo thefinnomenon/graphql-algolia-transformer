@@ -8,10 +8,11 @@ type Blog @model {
   posts: [Post] @hasMany
 }
 
-type Post @model @algolia(fields:{include:["title"]}, settings: { forwardToReplicas: true, settings: { searchableAttributes: ["title"]}}) {
+type Post @model @algolia {
   id: ID!
   title: String!
   blog: Blog @belongsTo
+  content: String
   comments: [Comment] @hasMany
 }
 

@@ -3,14 +3,14 @@ import Amplify from "aws-amplify";
 import algoliasearch from 'algoliasearch/lite';
 import instantsearch from 'instantsearch.js';
 import { searchBox, hits } from 'instantsearch.js/es/widgets';
-const searchClient = algoliasearch('APP_ID', 'API_KEY');
-
+const searchClient = algoliasearch('YOUR_ALGOLIA_APP_ID', 'YOUR_ALGOLIA_SEARCH_KEY');
+const indexName = 'YOUR_ALGOLIA_INDEX_NAME';
 import awsconfig from "./aws-exports";
 
 Amplify.configure(awsconfig);
 
 const search = instantsearch({
-    indexName: 'post',
+    indexName,
     searchClient,
 });
 

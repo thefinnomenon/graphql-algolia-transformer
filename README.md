@@ -34,18 +34,15 @@ I made this transformer because I didn't want the monthly costs for the Elastics
 Append to target models
 ```
 @algolia(
-          fields?: {
-            include?: [string],
-            exclude?: [string]
-          }, 
-          settings: {
-            forwardToReplicas?: Boolean, 
-            requestOptions?: AWSJSON, 
-            settings: AWSJSON,
-          }, 
-          functionName?: String, 
-          roleName?: String
-        }
+  fields?: {
+    include?: [string],
+    exclude?: [string]
+  }, 
+  settings: {
+    forwardToReplicas?: Boolean, 
+    requestOptions?: AWSJSON, 
+    settings: AWSJSON,
+  }
 )
 ``` 
 
@@ -53,21 +50,20 @@ Append to target models
 type Blog @model {
   id: ID!
   name: String!
-  posts: [Post] @connection(keyName: "byBlog", fields: ["id"])
+  posts: [Post] @hasMany
 }
 
-type Post @model @algolia(fields:{include:["title"]}) @key(name: "byBlog", fields: ["blogID"]) {
+type Post @model @algolia(fields:{include:["title"]}) {
   id: ID!
   title: String!
-  blogID: ID!
-  blog: Blog @connection(fields: ["blogID"])
-  comments: [Comment] @connection(keyName: "byPost", fields: ["id"])
+  blog: Blog @belongsTo
+  content: String
+  comments: [Comment] @hasMany
 }
 
-type Comment @model @key(name: "byPost", fields: ["postID", "content"]) {
+type Comment @model @algolia{
   id: ID!
-  postID: ID!
-  post: Post @connection(fields: ["postID"])
+  post: Post @belongsTo
   content: String!
 }
 ```
@@ -77,10 +73,10 @@ type Comment @model @key(name: "byPost", fields: ["postID", "content"]) {
 - Double check your Algolia settings (if specified) because they arent's validated until they are used in the Lambda function and can lead to a tricky
   problem to track down. If you create an entry on a model with the @algolia directive and no index is made in Algolia, check the Lambda function logs.
 - The Algolia ObjectID is a concatenation of the DynamoDB keys for the object; PrimaryKey(:SortKey).
-- Automatically creates an index with the model name (e.g. post).
+- Automatically creates an index. The index name will match your DynamoDB table name. (e.g. post-ahdoegz2xvaibaim2lopa7jv4a-dev)
 
 ### Example
-Check out [the schema](./examples/blog/amplify/backend/api/blog/schema.graphql) for the searchable blog example.
+Check out [the schema](./examples/blogv2/amplify/backend/api/blog/schema.graphql) for the searchable blog example.
 
 ## Configure Project ID & API Keys
 */amplify/backend/api/<API_NAME>/parameters.json*
@@ -88,14 +84,11 @@ Check out [the schema](./examples/blog/amplify/backend/api/blog/schema.graphql) 
 ```json
 {
   . . .
-  "AlgoliaProjectIdPost": "PROJECT_NAME",
-  "AlgoliaAppIdPost": "APPID",
-  "AlgoliaApiKeyPost": "APIKEY",
+  "AlgoliaAppId": "APPID",
+  "AlgoliaApiKey": "APIKEY",
 }
 ```
-The `AlgoliaProjectId` is necessary to autogenerate unique functions, rolesn & indexes across projects (e.g. searchable Posts model for project 1 and searchable Posts model for project 2).
-
-**Unfortunately, you have to define these parameters for each model that has the @algolia directive.** I can't declare the parameters in each stack because it complains about the parameters name conflicting. I also tried exporting them from CustomResources.json but couldn't get it to work. This is a good issue to work on if you want to contribute.
+This is your the Algolia App ID and API Key that will be used by the transformer. You can find these in your Algolia dashboard. 
 
 ## Push Changes
 `amplify push`
@@ -104,7 +97,10 @@ The `AlgoliaProjectId` is necessary to autogenerate unique functions, rolesn & i
 For querying the search indexes, use an [Algolia search client](https://www.algolia.com/developers/#integrations).
 
 ## How it works
-This directive creates an individual Lambda function for each declaration and attaches a DynamoDB stream from the respective table to the function. On receiving a stream, the function filters the fields as specified, formats the record into an Algolia payload and updates the Algolia index with the model name (if it doesn't exist, it creates it).
+This directive creates an individual Lambda function for each GraphQL Api in your Amplify project and attaches DynamoDB streams from the respective tables to the function. On receiving a stream, the function filters the fields as specified, formats the record into an Algolia payload and updates the Algolia index with the model name (if it doesn't exist, it creates it).
+
+## Legacy Amplify Transformer V1
+You can find legacy documentation for the Amplify Transformer V1 in the [README](https://github.com/thefinnomenon/graphql-algolia-transformer/blob/b390b1fcbb9facc87fb575d2d9cb615aad3231db/README.md). To use this package with the v1 transformer, you must install version [1.6.0](https://www.npmjs.com/package/graphql-algolia-transformer/v/1.6.0). Read more about the difference between v1 and v2 transformers [here](https://docs.amplify.aws/cli/migration/transformer-migration/)
 
 ## Contribute
 Contributions are more than welcome!
@@ -130,7 +126,7 @@ Please feel free to create, comment and of course solve some of the issues. To g
 ```
 - Rebuild the transformer with `npm run build`.
 - `amplify api gql-compile` lets you check the stack outputs without having to go through the lengthy push process.
-- Check `amplify/backend/api/<API>/build/stacks/AlgoliaStack<MODEL>` for expected outputs.
+- Check `amplify/backend/api/<API>/build/stacks/AlgoliaStack` for expected outputs.
 
 ## License
 The [MIT License](LICENSE)
@@ -139,4 +135,4 @@ The [MIT License](LICENSE)
 
 The _graphql-algolia-transformer_ library is maintained by Chris Finn [The Finnternet](https://thefinnternet.com).
 
-Based on [graphql-elasticsearch-transformer](https://github.com/aws-amplify/amplify-cli/tree/master/packages/graphql-elasticsearch-transformer)
+Based on [amplify-graphql-searchable-transformer](https://github.com/aws-amplify/amplify-category-api/tree/main/packages/amplify-graphql-searchable-transformer)

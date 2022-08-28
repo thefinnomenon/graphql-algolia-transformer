@@ -1,60 +1,28 @@
 import {
-  TransformerPluginBase, InvalidDirectiveError, MappingTemplate, DirectiveWrapper,
+  TransformerPluginBase, InvalidDirectiveError, DirectiveWrapper,
 } from '@aws-amplify/graphql-transformer-core';
 import {
-  DataSourceProvider,
   TransformerContextProvider,
   TransformerPrepareStepContextProvider,
   TransformerSchemaVisitStepContextProvider,
-  TransformerTransformSchemaStepContextProvider,
 } from '@aws-amplify/graphql-transformer-interfaces';
 import { DynamoDbDataSource } from '@aws-cdk/aws-appsync';
 import { Table } from '@aws-cdk/aws-dynamodb';
 import {
   CfnCondition, CfnParameter, Fn, IConstruct,
 } from '@aws-cdk/core';
-import { DirectiveNode, InputObjectTypeDefinitionNode, ObjectTypeDefinitionNode } from 'graphql';
-import { Expression, str } from 'graphql-mapping-template';
+import { DirectiveNode, ObjectTypeDefinitionNode } from 'graphql';
 import {
   ResourceConstants,
-  getBaseType,
   ModelResourceIDs,
-  STANDARD_SCALARS,
-  blankObject,
-  blankObjectExtension,
-  defineUnionType,
-  extensionWithFields,
-  makeField,
-  makeListType,
-  makeNamedType,
-  makeNonNullType,
-  makeInputValueDefinition,
   graphqlName,
   plurality,
-  toUpper,
-  ResolverResourceIDs,
-  makeDirective,
+  toUpper
 } from 'graphql-transformer-common';
 import { createParametersStack as createParametersInStack } from './cdk/create-cfnParameters';
-// import { requestTemplate, responseTemplate, sandboxMappingTemplate } from './generate-resolver-vtl';
-// import {
-//   makeSearchableScalarInputObject,
-//   makeSearchableSortDirectionEnumObject,
-//   makeSearchableXFilterInputObject,
-//   makeSearchableXSortableFieldsEnumObject,
-//   makeSearchableXAggregateFieldEnumObject,
-//   makeSearchableXSortInputObject,
-//   makeSearchableXAggregationInputObject,
-//   makeSearchableAggregateTypeEnumObject,
-//   AGGREGATE_TYPES,
-//   extendTypeWithDirectives,
-//   DATASTORE_SYNC_FIELDS,
-// } from './definitions';
+
 import { setMappings } from './cdk/create-layer-cfnMapping';
-// import { createSearchableDomain, createSearchableDomainRole } from './cdk/create-searchable-domain';
-// import { createSearchableDataSource } from './cdk/create-searchable-datasource';
 import { createEventSourceMapping, createLambda, createLambdaRole } from './cdk/create-streaming-lambda';
-// import { createStackOutputs } from './cdk/create-cfnOutput';
 
 const STACK_NAME = 'AlgoliaStack';
 
@@ -63,7 +31,7 @@ export class AlgoliaTransformer extends TransformerPluginBase {
   searchableObjectNames: string[];
   constructor() {
     super(
-      'algolia-searchable-transformer',
+      'graphql-algolia-transformer',
       /* GraphQL */ `
         directive @algolia on OBJECT
       `,
@@ -74,6 +42,11 @@ export class AlgoliaTransformer extends TransformerPluginBase {
 
   generateResolvers = (context: TransformerContextProvider): void => {
     const { Env } = ResourceConstants.PARAMETERS;
+
+    console.log(context.getResolverConfig())
+    console.log(context.inputDocument.definitions)
+
+    // console.log({params:ResourceConstants.PARAMETERS})
 
     const { HasEnvironmentParameter } = ResourceConstants.CONDITIONS;
 

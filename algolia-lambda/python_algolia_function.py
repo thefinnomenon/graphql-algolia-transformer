@@ -13,6 +13,8 @@ from algoliasearch.search_client import SearchClient
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG if os.getenv('DEBUG', default = 1) else logging.INFO)
 logger.info("Update Algolia")
+for name, value in os.environ.items():
+    logger.info('%s: %s',name, value)
 
 # Algolia
 ALGOLIA_FIELDS = ''
@@ -22,6 +24,7 @@ try:
         ALGOLIA_FIELDS = json.loads(fields_var)
         logger.debug('Fields: %s', ALGOLIA_FIELDS)
 except:
+    logger.exception("Fields parsing error")
     raise ValueError('If you specify fields, it must be an object with EITHER field: "include" OR "exclude".')
 if ALGOLIA_FIELDS and ('include' in ALGOLIA_FIELDS and 'exclude' in ALGOLIA_FIELDS):
     raise ValueError('If you specify fields, it must be an object with EITHER field: "include" OR "exclude".')

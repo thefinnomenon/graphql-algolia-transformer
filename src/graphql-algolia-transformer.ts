@@ -9,7 +9,7 @@ import { DynamoDbDataSource } from '@aws-cdk/aws-appsync';
 import { Table } from '@aws-cdk/aws-dynamodb';
 import { IFunction } from '@aws-cdk/aws-lambda';
 import {
-  CfnCondition, CfnParameter, Construct, Fn, IConstruct,
+  CfnCondition, CfnParameter, Fn, IConstruct,
 } from '@aws-cdk/core';
 import { DirectiveNode, ObjectTypeDefinitionNode } from 'graphql';
 import {

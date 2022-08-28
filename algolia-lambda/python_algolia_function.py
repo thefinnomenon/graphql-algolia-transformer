@@ -13,36 +13,33 @@ from algoliasearch.search_client import SearchClient
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG if os.getenv('DEBUG', default = 1) else logging.INFO)
 logger.info("Update Algolia")
-for name, value in os.environ.items():
-    logger.info('%s: %s',name, value)
 
 # Algolia
-ALGOLIA_FIELDS = ''
+ALGOLIA_FIELDS_MAP = ''
 try:
-    fields_var = os.getenv('ALGOLIA_FIELDS')
+    fields_var = os.getenv('ALGOLIA_FIELDS_MAP')
     if fields_var:
-        ALGOLIA_FIELDS = json.loads(fields_var)
-        logger.debug('Fields: %s', ALGOLIA_FIELDS)
+        ALGOLIA_FIELDS_MAP = json.loads(fields_var)
+        logger.debug('FieldsMap: %s', ALGOLIA_FIELDS_MAP)
 except:
-    logger.exception("Fields parsing error")
-    raise ValueError('If you specify fields, it must be an object with EITHER field: "include" OR "exclude".')
-if ALGOLIA_FIELDS and ('include' in ALGOLIA_FIELDS and 'exclude' in ALGOLIA_FIELDS):
-    raise ValueError('If you specify fields, it must be an object with EITHER field: "include" OR "exclude".')
-if ALGOLIA_FIELDS and ('include' not in ALGOLIA_FIELDS and 'exclude' not in ALGOLIA_FIELDS):
-    raise ValueError('If you specify fields, it must be an object with EITHER field: "include" OR "exclude".')
+    logger.exception("Fields map parsing error")
+    raise ValueError('If you specify fields, it must be a valid json object.')
 
-ALGOLIA_SETTINGS = ''
+if ALGOLIA_FIELDS_MAP:
+    for key, value in ALGOLIA_FIELDS_MAP.items():
+        if 'include' in value and 'exclude' in value:
+            raise ValueError('If you specify fields, it must be an object with EITHER field: "include" OR "exclude".')
+        if 'include' not in value and 'exclude' not in value:
+            raise ValueError('If you specify fields, it must be an object with EITHER field: "include" OR "exclude".')
+
+ALGOLIA_SETTINGS_MAP = {}
 try:
-    settings_var = os.getenv('ALGOLIA_SETTINGS')
+    settings_var = os.getenv('ALGOLIA_SETTINGS_MAP')
     if settings_var:
-        ALGOLIA_SETTINGS = json.loads(settings_var)
-        logger.debug('Settings: %s', ALGOLIA_SETTINGS)
+        ALGOLIA_SETTINGS_MAP = json.loads(settings_var)
+        logger.debug('SettingsMap: %s', ALGOLIA_SETTINGS_MAP)
 except:
     raise ValueError('If you specify settings, it must at least have an object of settings.')
-
-ALGOLIA_PROJECT_ID = os.getenv('ALGOLIA_PROJECT_ID', default = '')
-if ALGOLIA_PROJECT_ID == '':
-    raise ValueError('You need to provide ALGOLIA_PROJECT_ID in order to guarantee uniqueness.')
 
 ALGOLIA_APP_ID = os.getenv('ALGOLIA_APP_ID', default = '')
 ALGOLIA_API_KEY = os.getenv('ALGOLIA_API_KEY', default = '')
@@ -84,16 +81,18 @@ def set_index_settings(index_name, opts):
 
 # Configure Indexed Fields
 # https://www.algolia.com/doc/guides/sending-and-managing-data/prepare-your-data/how-to/reducing-object-size/
-def set_indexed_fields(all_fields):
+def set_indexed_fields(type_name, all_fields):
     fields = {}
-    if not ALGOLIA_FIELDS:
+    logger.info(type_name)
+    logger.info(ALGOLIA_FIELDS_MAP)
+    if not type_name in ALGOLIA_FIELDS_MAP:
         logger.debug('Indexed Fields: %s', all_fields)
         return all_fields
-    if 'include' in ALGOLIA_FIELDS:
-        key_set = set(ALGOLIA_FIELDS['include']) & set(all_fields.keys())
+    if 'include' in ALGOLIA_FIELDS_MAP[type_name]:
+        key_set = set(ALGOLIA_FIELDS_MAP[type_name]['include']) & set(all_fields.keys())
         fields = { key: all_fields[key] for key in key_set }      
-    elif 'exclude' in ALGOLIA_FIELDS:
-        key_set = set(all_fields.keys()) - set(ALGOLIA_FIELDS['exclude'])
+    elif 'exclude' in ALGOLIA_FIELDS_MAP[type_name]:
+        key_set = set(all_fields.keys()) - set(ALGOLIA_FIELDS_MAP[type_name]['exclude'])
         fields = {key: all_fields[key] for key in key_set}
     logger.debug('Indexed Fields: %s', fields)
     return fields
@@ -114,8 +113,6 @@ def _lambda_handler(event, context):
     operations = []
     cnt_insert = cnt_modify = cnt_remove = 0
 
-    index_name = ''
-
     # Process each record
     for record in records:
         # Handle both native DynamoDB Streams or Streams data from Kinesis (for manual replay)
@@ -135,10 +132,6 @@ def _lambda_handler(event, context):
 
         # Compute DynamoDB table, type and index for item
         doc_table = ddb_table_name.lower()
-        doc_table_parts = doc_table.split('-')
-        doc_index_name = doc_table_parts[0] if len(doc_table_parts) > 0  else doc_table
-        doc_index_suffix = "-" + doc_table_parts[-1] if len(doc_table_parts) > 1  else ''
-        index_name = ALGOLIA_PROJECT_ID + '-' + doc_index_name + doc_index_suffix
 
         # Dispatch according to event TYPE
         event_name = record['eventName'].upper()  # INSERT, MODIFY, REMOVE
@@ -163,7 +156,8 @@ def _lambda_handler(event, context):
         doc_keys = ddb_deserializer.deserialize({'M': record['dynamodb']['Keys']})
         doc_fields = ddb_deserializer.deserialize({'M': ddb[image_name]})
         logger.debug('All Fields: %s', doc_fields)
-        doc_fields = set_indexed_fields(doc_fields)
+        type_name = doc_fields["__typename"]
+        doc_fields = set_indexed_fields(type_name, doc_fields)
             
         # Update counters
         if event_name == 'INSERT':
@@ -183,7 +177,7 @@ def _lambda_handler(event, context):
         if is_ddb_insert_or_update:
             operation = {   
                 'action': 'updateObject',
-                'indexName': index_name,
+                'indexName': doc_table,
                 'body': doc_fields
             }
 
@@ -191,7 +185,7 @@ def _lambda_handler(event, context):
         elif is_ddb_delete:
             operation = {   
                 'action': 'deleteObject',
-                'indexName': index_name,
+                'indexName': doc_table,
                 'body': doc_fields
             }
         
@@ -200,7 +194,7 @@ def _lambda_handler(event, context):
         operations.append(operation);
 
     # Update Index Settings
-    set_index_settings(index_name, ALGOLIA_SETTINGS)
+    set_index_settings(doc_table, ALGOLIA_SETTINGS_MAP.get(type_name, ""))
 
     # Execute Batch Operations 
     # [https://www.algolia.com/doc/api-reference/api-methods/batch/]

@@ -1,21 +1,20 @@
 import { ResourceConstants } from 'graphql-transformer-common';
 import { CfnParameter, Stack } from '@aws-cdk/core';
+import { AlgoliaDirectiveArgs, FieldList } from '../directive-args';
 
-  const AlgoliaProjectId = "AlgoliaProjectId";
   const AlgoliaAppId = "AlgoliaAppId";
   const AlgoliaApiKey = "AlgoliaApiKey";
-  const AlgoliaFields = "AlgoliaFields";
-  const AlgoliaSettings = "AlgoliaSettings";
+  const AlgoliaFieldsMap = "AlgoliaFieldsMap";
+  const AlgoliaSettingsMap = "AlgoliaSettingsMap";
 
   export const ALGOLIA_PARAMS = {
-    AlgoliaProjectId,
     AlgoliaAppId,
     AlgoliaApiKey,
-    AlgoliaFields,
-    AlgoliaSettings
+    AlgoliaFieldsMap,
+    AlgoliaSettingsMap
   }
 
-export const createParametersStack = (stack: Stack): Map<string, CfnParameter> => {
+export const createParametersStack = (stack: Stack, defaultFields?: Record<string, FieldList>, defaultSettings?: Record<string, string>): Map<string, CfnParameter> => {
   const {
     OpenSearchAccessIAMRoleName,
     OpenSearchStreamingLambdaHandlerName,
@@ -31,13 +30,6 @@ export const createParametersStack = (stack: Stack): Map<string, CfnParameter> =
 
   return new Map<string, CfnParameter>([
     [
-      AlgoliaProjectId,
-      new CfnParameter(stack, AlgoliaProjectId, {
-        description: 'Algolia Project ID.',
-        default: "",
-      }),
-    ],
-    [
       AlgoliaAppId,
       new CfnParameter(stack, AlgoliaAppId, {
         description: 'Algolia App ID.',
@@ -52,17 +44,17 @@ export const createParametersStack = (stack: Stack): Map<string, CfnParameter> =
       }),
     ],
     [
-      AlgoliaFields,
-      new CfnParameter(stack, AlgoliaFields, {
-        description: 'An object specifying fields to either include in or exclude from the Angolia Index.',
-        default: "",
+      AlgoliaFieldsMap,
+      new CfnParameter(stack, AlgoliaFieldsMap, {
+        description: 'An object specifying fields to either include in or exclude from the Angolia Index. The object keys are the model names that were annotated with @algolia. { post: { include: ["title"] } }',
+        default: JSON.stringify(defaultFields??""),
       }),
     ],
     [
-      AlgoliaSettings,
-      new CfnParameter(stack, AlgoliaSettings, {
-        description: 'The Angolia Index Settings. { settings: {...}, forwardsToReplica?: boolean, requestOptions?: {...} }',
-        default: "",
+      AlgoliaSettingsMap,
+      new CfnParameter(stack, AlgoliaSettingsMap, {
+        description: 'The Angolia Index Settings. The object keys are the model names that were annotated with @algolia. { post: { settings: {...}, forwardsToReplica?: boolean, requestOptions?: {...} } }',
+        default: JSON.stringify(defaultSettings??""),
       }),
     ],
     [

@@ -134,7 +134,13 @@ export const schema = {
                 },
                 {
                     "type": "algolia",
-                    "properties": {}
+                    "properties": {
+                        "fields": {
+                            "include": [
+                                "title"
+                            ]
+                        }
+                    }
                 }
             ]
         },
@@ -190,6 +196,10 @@ export const schema = {
             "attributes": [
                 {
                     "type": "model",
+                    "properties": {}
+                },
+                {
+                    "type": "algolia",
                     "properties": {}
                 }
             ]

@@ -8,15 +8,15 @@ type Blog @model {
   posts: [Post] @hasMany
 }
 
-type Post @model @algolia {
+type Post @model @algolia(fields:{include:["title"]}) {
   id: ID!
   title: String!
   blog: Blog @belongsTo
-  content: String!
+  content: String
   comments: [Comment] @hasMany
 }
 
-type Comment @model {
+type Comment @model @algolia{
   id: ID!
   post: Post @belongsTo
   content: String!

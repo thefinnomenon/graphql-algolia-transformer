@@ -17,19 +17,17 @@ export const createLambda = (
   apiGraphql: GraphQLAPIProvider,
   parameterMap: Map<string, CfnParameter>,
   lambdaRole: IRole,
-  isProjectUsingDataStore: boolean,
 ): IFunction => {
   const { OpenSearchStreamingLambdaFunctionLogicalID } = ResourceConstants.RESOURCES;
   const { OpenSearchStreamingLambdaHandlerName, OpenSearchDebugStreamingLambda } = ResourceConstants.PARAMETERS;
-  const {AlgoliaProjectId, AlgoliaAppId, AlgoliaApiKey, AlgoliaFields, AlgoliaSettings} = ALGOLIA_PARAMS;
+  const { AlgoliaAppId, AlgoliaApiKey, AlgoliaFieldsMap, AlgoliaSettingsMap} = ALGOLIA_PARAMS;
+
   const enviroment: { [key: string]: string } = {
     DEBUG: parameterMap.get(OpenSearchDebugStreamingLambda)!.valueAsString,
-    OPENSEARCH_USE_EXTERNAL_VERSIONING: isProjectUsingDataStore.toString(),
-    ALGOLIA_PROJECT_ID: parameterMap.get(AlgoliaProjectId)!.valueAsString,
     ALGOLIA_APP_ID: parameterMap.get(AlgoliaAppId)!.valueAsString,
     ALGOLIA_API_KEY: parameterMap.get(AlgoliaApiKey)!.valueAsString,
-    ALGOLIA_FIELDS: parameterMap.get(AlgoliaFields)!.valueAsString,
-    ALGOLIA_SETTINGS: parameterMap.get(AlgoliaSettings)!.valueAsString,
+    ALGOLIA_FIELDS_MAP: parameterMap.get(AlgoliaFieldsMap)!.valueAsString,
+    ALGOLIA_SETTINGS_MAP: parameterMap.get(AlgoliaSettingsMap)!.valueAsString,
   };
 
   return apiGraphql.host.addLambdaFunction(

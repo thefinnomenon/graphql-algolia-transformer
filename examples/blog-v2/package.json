@@ -1,0 +1,21 @@
+{
+    "name": "blog",
+    "version": "1.0.0",
+    "description": "Amplify Searchable Blog Example",
+    "dependencies": {
+        "algoliasearch": "^4.10.3",
+        "aws-amplify": "latest",
+        "graphql-algolia-transformer": "^1.1.0",
+        "instantsearch.js": "^4.25.2"
+    },
+    "devDependencies": {
+        "copy-webpack-plugin": "^6.1.0",
+        "webpack": "^4.17.1",
+        "webpack-cli": "^3.1.0",
+        "webpack-dev-server": "^3.1.5"
+    },
+    "scripts": {
+        "start": "webpack && webpack-dev-server --mode development",
+        "build": "webpack"
+    }
+}

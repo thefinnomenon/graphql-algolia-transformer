@@ -27,6 +27,9 @@
           },
           "Id": {
             "N": "0"
+          },
+          "__typename":{
+             "S":"ExampleTable"
           }
         },
         "ApproximateCreationDateTime": 1428537600,
@@ -34,7 +37,7 @@
         "SizeBytes": 26,
         "StreamViewType": "NEW_IMAGE"
       },
-      "eventSourceARN": "arn:aws:dynamodb:us-east-1:123456789012:table/ExampleTableWithStream/stream/2015-06-27T00:48:05.899"
+      "eventSourceARN": "arn:aws:dynamodb:us-east-1:123456789012:table/ExampleTable-ahdoegz2xvaibaim2lopa7jv4a-dev/stream/2015-06-27T00:48:05.899"
     },
     {
       "eventID": "c4ca4238a0b923820dcc50da6f75849b",
@@ -60,6 +63,9 @@
           },
           "Id": {
             "N": "1"
+          },
+          "__typename":{
+             "S":"ExampleTable"
           }
         },
         "ApproximateCreationDateTime": 1428537600,
@@ -67,7 +73,7 @@
         "SizeBytes": 26,
         "StreamViewType": "NEW_IMAGE"
       },
-      "eventSourceARN": "arn:aws:dynamodb:us-east-1:123456789012:table/ExampleTableWithStream/stream/2015-06-27T00:48:05.899"
+      "eventSourceARN": "arn:aws:dynamodb:us-east-1:123456789012:table/ExampleTable-ahdoegz2xvaibaim2lopa7jv4a-dev/stream/2015-06-27T00:48:05.899"
     },
     {
       "eventID": "c4ca4238a0b923820dcc509a6f45849b",
@@ -93,6 +99,9 @@
           },
           "Id": {
             "N": "2"
+          },
+          "__typename":{
+             "S":"ExampleTable"
           }
         },
         "ApproximateCreationDateTime": 1428537600,
@@ -100,7 +109,7 @@
         "SizeBytes": 26,
         "StreamViewType": "NEW_IMAGE"
       },
-      "eventSourceARN": "arn:aws:dynamodb:us-east-1:123456789012:table/ExampleTableWithStream/stream/2015-06-27T00:48:05.899"
+      "eventSourceARN": "arn:aws:dynamodb:us-east-1:123456789012:table/ExampleTable-ahdoegz2xvaibaim2lopa7jv4a-dev/stream/2015-06-27T00:48:05.899"
     },
     {
       "eventID": "c81e728d9d4c2f636f067f89cc14862c",
@@ -126,6 +135,9 @@
           },
           "Id": {
             "N": "0"
+          },
+          "__typename":{
+             "S":"ExampleTable"
           }
         },
         "ApproximateCreationDateTime": 1428537600,
@@ -133,7 +145,7 @@
         "SizeBytes": 59,
         "StreamViewType": "NEW_IMAGE"
       },
-      "eventSourceARN": "arn:aws:dynamodb:us-east-1:123456789012:table/ExampleTableWithStream/stream/2015-06-27T00:48:05.899"
+      "eventSourceARN": "arn:aws:dynamodb:us-east-1:123456789012:table/ExampleTable-ahdoegz2xvaibaim2lopa7jv4a-dev/stream/2015-06-27T00:48:05.899"
     },
     {
       "eventID": "eccbc87e4b5ce2fe28308fd9f2a7baf3",
@@ -145,6 +157,9 @@
         "Keys": {
           "Id": {
             "N": "1"
+          },
+          "__typename":{
+             "S":"ExampleTable"
           }
         },
         "ApproximateCreationDateTime": 1428537600,
@@ -152,7 +167,7 @@
         "SizeBytes": 38,
         "StreamViewType": "NEW_IMAGE"
       },
-      "eventSourceARN": "arn:aws:dynamodb:us-east-1:123456789012:table/ExampleTableWithStream/stream/2015-06-27T00:48:05.899"
+      "eventSourceARN": "arn:aws:dynamodb:us-east-1:123456789012:table/ExampleTable-ahdoegz2xvaibaim2lopa7jv4a-dev/stream/2015-06-27T00:48:05.899"
     }
   ]
 }

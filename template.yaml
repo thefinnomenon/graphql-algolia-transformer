@@ -9,19 +9,15 @@ Parameters:
     Type: String
     Description: Algolia API Key.
     Default: ''
-  ALGOLIA_FIELDS:
+  ALGOLIA_FIELDS_MAP:
     Type: String
-    Description: Algolia Fields.
-    Default: '{"include": ["two"]}'
+    Description: Fields To create indexes for in Algolia.
+    Default: '{"ExampleTable":{"include": ["two"]}}'
     # Default: '{"exclude": ["one", "three"]}'
-  ALGOLIA_SETTINGS:
+  ALGOLIA_SETTINGS_MAP:
     Type: String
-    Description: Algolia Settings.
-    Default: ''
-  ALGOLIA_PROJECT_ID:
-    Type: String
-    Description: Algolia Project ID.
-    Default: ''
+    Description: Algolia Index Settings.
+    Default: '{"ExampleTable":{"settings": {"ranking":["words", "typo"]}}}'
 Resources:
   ProcessDynamoDBStream:
     Type: AWS::Serverless::Function
@@ -35,9 +31,8 @@ Resources:
         Variables:
           ALGOLIA_APP_ID: !Ref ALGOLIA_APP_ID
           ALGOLIA_API_KEY: !Ref ALGOLIA_API_KEY
-          ALGOLIA_FIELDS: !Ref ALGOLIA_FIELDS
-          ALGOLIA_SETTINGS: !Ref ALGOLIA_SETTINGS
-          ALGOLIA_PROJECT_ID: !Ref ALGOLIA_PROJECT_ID
+          ALGOLIA_FIELDS_MAP: !Ref ALGOLIA_FIELDS_MAP
+          ALGOLIA_SETTINGS_MAP: !Ref ALGOLIA_SETTINGS_MAP
       Events:
         Stream:
           Type: DynamoDB

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "serviceConfiguration": {
+    "apiName": "blogv2",
+    "serviceName": "AppSync",
+    "gqlSchemaPath": "/Users/ollie/Work/graphql-algolia-transformer/examples/blog-v2/amplify/backend/api/blogv2/schema.graphql",
+    "defaultAuthType": {
+      "mode": "API_KEY",
+      "expirationTime": 7
+    },
+    "conflictResolution": {
+      "defaultResolutionStrategy": {
+        "type": "AUTOMERGE"
+      }
+    }
+  }
+}

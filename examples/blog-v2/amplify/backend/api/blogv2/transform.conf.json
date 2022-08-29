@@ -1,0 +1,13 @@
+{
+    "Version": 5,
+    "ElasticsearchWarning": true,
+    "transformers": [
+        "//Users/ollie/Work/graphql-algolia-transformer"
+    ],
+    "ResolverConfig": {
+        "project": {
+            "ConflictHandler": "AUTOMERGE",
+            "ConflictDetection": "VERSION"
+        }
+    }
+}

@@ -75,9 +75,6 @@ type Comment @model @algolia{
 - The Algolia ObjectID is a concatenation of the DynamoDB keys for the object; PrimaryKey(:SortKey).
 - Automatically creates an index. The index name will match your DynamoDB table name. (e.g. post-ahdoegz2xvaibaim2lopa7jv4a-dev)
 
-### Example
-Check out [the schema](./examples/blogv2/amplify/backend/api/blog/schema.graphql) for the searchable blog example.
-
 ## Configure Project ID & API Keys
 */amplify/backend/api/<API_NAME>/parameters.json*
 
@@ -95,6 +92,9 @@ This is your the Algolia App ID and API Key that will be used by the transformer
 
 ## Query
 For querying the search indexes, use an [Algolia search client](https://www.algolia.com/developers/#integrations).
+
+### Example
+Check out [the schema](./examples/blog-v2/amplify/backend/api/blog/schema.graphql) for the searchable blog example.
 
 ## How it works
 This directive creates an individual Lambda function for each GraphQL Api in your Amplify project and attaches DynamoDB streams from the respective tables to the function. On receiving a stream, the function filters the fields as specified, formats the record into an Algolia payload and updates the Algolia index with the model name (if it doesn't exist, it creates it).

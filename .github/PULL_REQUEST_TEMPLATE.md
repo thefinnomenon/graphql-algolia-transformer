@@ -1,3 +1,7 @@
+## What Changed ##
+<!-- Describe changes made in your PR. Point form preferred. -->
+- Removed foo from bar in the main widget.
+
 #### Checklist
 
 <!-- Remove items that do not apply. For completed items, change [ ] to [x]. -->

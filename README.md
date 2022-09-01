@@ -3,6 +3,7 @@
 [![Pull requests are welcome!](https://img.shields.io/badge/PRs-welcome-brightgreen)](#contribute-)
 [![npm](https://img.shields.io/npm/v/graphql-algolia-transformer)](https://www.npmjs.com/package/graphql-algolia-transformer)
 [![GitHub license](https://img.shields.io/github/license/thefinnomenon/graphql-algolia-transformer)](https://github.com/thefinnomenon/graphql-algolia-transformer/blob/master/LICENSE)
+[![Code Coverage](https://github.com/thefinnomenon/graphql-algolia-transformer/actions/workflows/COVERAGE.yml/badge.svg)](https://github.com/thefinnomenon/graphql-algolia-transformer/actions/workflows/COVERAGE.yml)
 
 # Description
 Add Serverless search to your Amplify API with Aloglia using this transformer.

@@ -3,6 +3,6 @@ module.exports = {
     "^.+\\.tsx?$": "ts-jest",
   },
   testURL: "http://localhost",
-  testRegex: "(src/__tests__/.*.test.*)$",
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
+  testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
 };

@@ -2,7 +2,7 @@
     "Version": 5,
     "ElasticsearchWarning": true,
     "transformers": [
-        "//Users/ollie/Work/graphql-algolia-transformer"
+        "graphql-algolia-transformer"
     ],
     "ResolverConfig": {
         "project": {

@@ -9,7 +9,7 @@ import { DynamoDbDataSource } from '@aws-cdk/aws-appsync';
 import { Table } from '@aws-cdk/aws-dynamodb';
 import { IFunction } from '@aws-cdk/aws-lambda';
 import {
-  CfnCondition, CfnParameter, Construct, Fn, IConstruct,
+  CfnCondition, CfnParameter, Fn, IConstruct,
 } from '@aws-cdk/core';
 import { DirectiveNode, ObjectTypeDefinitionNode } from 'graphql';
 import {
@@ -41,7 +41,7 @@ export class AlgoliaTransformer extends TransformerPluginBase {
     super(
       'graphql-algolia-transformer',
       /* GraphQL */ `
-        directive @${ directiveName }(fields: FieldList) on OBJECT
+        directive @${ directiveName }(fields: FieldList, settings: AWSJSON) on OBJECT
         input FieldList {
           include: [String]
           exclude: [String]

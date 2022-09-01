@@ -1,6 +1,6 @@
 import { ResourceConstants } from 'graphql-transformer-common';
 import { CfnParameter, Stack } from '@aws-cdk/core';
-import { AlgoliaDirectiveArgs, FieldList } from '../directive-args';
+import { FieldList } from '../directive-args';
 
   const AlgoliaAppId = "AlgoliaAppId";
   const AlgoliaApiKey = "AlgoliaApiKey";
@@ -53,7 +53,7 @@ export const createParametersStack = (stack: Stack, defaultFields?: Record<strin
     [
       AlgoliaSettingsMap,
       new CfnParameter(stack, AlgoliaSettingsMap, {
-        description: 'The Angolia Index Settings. The object keys are the model names that were annotated with @algolia. { post: { settings: {...}, forwardsToReplica?: boolean, requestOptions?: {...} } }',
+        description: 'The Angolia Index Settings. The object keys are the model names that were annotated with @algolia. { settings: {...}, forwardsToReplica?: boolean, requestOptions?: {...} }',
         default: JSON.stringify(defaultSettings??""),
       }),
     ],

@@ -3,6 +3,7 @@
 [![Pull requests are welcome!](https://img.shields.io/badge/PRs-welcome-brightgreen)](#contribute-)
 [![npm](https://img.shields.io/npm/v/graphql-algolia-transformer)](https://www.npmjs.com/package/graphql-algolia-transformer)
 [![GitHub license](https://img.shields.io/github/license/thefinnomenon/graphql-algolia-transformer)](https://github.com/thefinnomenon/graphql-algolia-transformer/blob/master/LICENSE)
+[![Code Coverage](https://github.com/thefinnomenon/graphql-algolia-transformer/actions/workflows/COVERAGE.yml/badge.svg)](https://github.com/thefinnomenon/graphql-algolia-transformer/actions/workflows/COVERAGE.yml)
 
 # Description
 Add Serverless search to your Amplify API with Aloglia using this transformer.
@@ -75,9 +76,6 @@ type Comment @model @algolia{
 - The Algolia ObjectID is a concatenation of the DynamoDB keys for the object; PrimaryKey(:SortKey).
 - Automatically creates an index. The index name will match your DynamoDB table name. (e.g. post-ahdoegz2xvaibaim2lopa7jv4a-dev)
 
-### Example
-Check out [the schema](./examples/blogv2/amplify/backend/api/blog/schema.graphql) for the searchable blog example.
-
 ## Configure Project ID & API Keys
 */amplify/backend/api/<API_NAME>/parameters.json*
 
@@ -95,6 +93,9 @@ This is your the Algolia App ID and API Key that will be used by the transformer
 
 ## Query
 For querying the search indexes, use an [Algolia search client](https://www.algolia.com/developers/#integrations).
+
+### Example
+Check out [the schema](./examples/blog-v2/amplify/backend/api/blog/schema.graphql) for the searchable blog example.
 
 ## How it works
 This directive creates an individual Lambda function for each GraphQL Api in your Amplify project and attaches DynamoDB streams from the respective tables to the function. On receiving a stream, the function filters the fields as specified, formats the record into an Algolia payload and updates the Algolia index with the model name (if it doesn't exist, it creates it).
@@ -133,6 +134,8 @@ The [MIT License](LICENSE)
 
 ## Credits
 
-The _graphql-algolia-transformer_ library is maintained by Chris Finn [The Finnternet](https://thefinnternet.com).
+The _graphql-algolia-transformer_ library is maintained by 
+- Chris Finn [The Finnternet](https://thefinnternet.com).
+- OllieTheDev [OllieTheDev](https://olliecodes.com).
 
 Based on [amplify-graphql-searchable-transformer](https://github.com/aws-amplify/amplify-category-api/tree/main/packages/amplify-graphql-searchable-transformer)

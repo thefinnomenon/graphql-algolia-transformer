@@ -21,7 +21,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
 
     - name: Install dependencies
-      run: npm install && npm install aws-sdk@2.1055.0
+      run: npm install && npm install aws-sdk@2.1055.0 && npm install @aws-amplify/cli
 
     - name: Run the tests
       run: npm test -- --coverage

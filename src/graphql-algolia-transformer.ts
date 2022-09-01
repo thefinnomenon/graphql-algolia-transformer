@@ -41,7 +41,7 @@ export class AlgoliaTransformer extends TransformerPluginBase {
     super(
       'graphql-algolia-transformer',
       /* GraphQL */ `
-        directive @${ directiveName }(fields: FieldList) on OBJECT
+        directive @${ directiveName }(fields: FieldList, settings: AWSJSON) on OBJECT
         input FieldList {
           include: [String]
           exclude: [String]

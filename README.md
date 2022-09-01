@@ -133,6 +133,8 @@ The [MIT License](LICENSE)
 
 ## Credits
 
-The _graphql-algolia-transformer_ library is maintained by Chris Finn [The Finnternet](https://thefinnternet.com).
+The _graphql-algolia-transformer_ library is maintained by 
+- Chris Finn [The Finnternet](https://thefinnternet.com).
+- OllieTheDev [OllieTheDev](https://olliecodes.com).
 
 Based on [amplify-graphql-searchable-transformer](https://github.com/aws-amplify/amplify-category-api/tree/main/packages/amplify-graphql-searchable-transformer)

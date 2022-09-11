@@ -1,6 +1,6 @@
 {
   "name": "graphql-algolia-transformer",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Amplify GraphQL @algolia transformer",
   "author": "Chris Finn <chris@thefinnternet.com>",
   "license": "MIT",

@@ -315,3 +315,13 @@ export const syncComments = /* GraphQL */ `
     }
   }
 `;
+export const searchPosts = /* GraphQL */ `
+  query SearchPosts($query: String) {
+    searchPosts(query: $query)
+  }
+`;
+export const searchComments = /* GraphQL */ `
+  query SearchComments($query: String) {
+    searchComments(query: $query)
+  }
+`;

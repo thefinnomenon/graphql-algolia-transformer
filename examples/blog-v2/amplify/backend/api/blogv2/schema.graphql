@@ -12,7 +12,7 @@ type Post @model @algolia(fields:{include:["title"]}) {
   id: ID!
   title: String!
   blog: Blog @belongsTo
-  content: String
+  content: String!
   comments: [Comment] @hasMany
 }
 

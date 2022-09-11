@@ -103,9 +103,7 @@ def generateObjectID(keys):
     objectID = ":".join(map(lambda key: str(keys[key]), keys))
     return objectID
 
-# Lamba Handler
-def _lambda_handler(event, context):
-    logger.debug('Event: %s', event)
+def handle_db_event(event):
     records = event['Records']
     now = datetime.datetime.utcnow()
 
@@ -201,6 +199,26 @@ def _lambda_handler(event, context):
     logger.info('Posting to Algolia: inserts=%s updates=%s deletes=%s, total operations=%s', cnt_insert, cnt_modify, cnt_remove, len(operations) - 1)
     client.multiple_batch(operations).wait()
 
+def handle_appsync_query(event):
+    logger.debug('Event: %s', event)
+    tableName = event['tableName']
+    index = client.init_index(tableName.lower())
+    query = json.loads(event['arguments'])['query']
+    # Execute Search Query
+    # [https://www.algolia.com/doc/api-reference/api-methods/search/]
+    response = index.search(query)
+    logger.info('Response: %s', response)
+    return json.dumps(response)
+
+# Lamba Handler
+def _lambda_handler(event, context):
+    logger.debug('Event: %s', event)
+    if 'Records' in event:
+        return handle_db_event(event)
+    elif 'typeName' in event:
+        return handle_appsync_query(json.loads(event) if isinstance(event, str) else event)
+    else:
+        logger.error('Unknown event type: %s', event)
 
 # Global lambda handler - catches all exceptions to avoid dead letter in the DynamoDB Stream
 def lambda_handler(event, context):

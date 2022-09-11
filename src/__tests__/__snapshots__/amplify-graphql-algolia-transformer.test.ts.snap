@@ -177,6 +177,7 @@ input ModelPostFilterInput {
 type Query {
   getPost(id: ID!): Post
   listPosts(filter: ModelPostFilterInput, limit: Int, nextToken: String): ModelPostConnection
+  searchPosts(query: String): AWSJSON
 }
 
 input ModelPostConditionInput {
@@ -889,6 +890,8 @@ type Query {
   listPosts(filter: ModelPostFilterInput, limit: Int, nextToken: String): ModelPostConnection
   getUser(id: ID!): User
   listUsers(filter: ModelUserFilterInput, limit: Int, nextToken: String): ModelUserConnection
+  searchPosts(query: String): AWSJSON
+  searchUsers(query: String): AWSJSON
 }
 
 input ModelPostConditionInput {
@@ -1150,6 +1153,7 @@ input ModelPostFilterInput {
 type Query {
   getPost(id: ID!): Post
   listPosts(filter: ModelPostFilterInput, limit: Int, nextToken: String): ModelPostConnection
+  searchPosts(query: String): AWSJSON
 }
 
 input ModelPostConditionInput {
@@ -1356,6 +1360,7 @@ input ModelPostFilterInput {
 type Query {
   getPost(id: ID!): Post
   listPosts(filter: ModelPostFilterInput, limit: Int, nextToken: String): ModelPostConnection
+  searchPosts(query: String): AWSJSON
 }
 
 input ModelPostConditionInput {
@@ -1577,6 +1582,7 @@ input ModelPostFilterInput {
 type Query {
   getPost(id: ID!): Post
   listPosts(filter: ModelPostFilterInput, limit: Int, nextToken: String): ModelPostConnection
+  searchPosts(query: String): AWSJSON
 }
 
 input ModelPostConditionInput {

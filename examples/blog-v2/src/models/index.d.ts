@@ -30,7 +30,7 @@ export declare class Post {
   readonly id: string;
   readonly title: string;
   readonly blog?: Blog | null;
-  readonly content?: string | null;
+  readonly content: string;
   readonly comments?: (Comment | null)[] | null;
   readonly createdAt?: string | null;
   readonly updatedAt?: string | null;

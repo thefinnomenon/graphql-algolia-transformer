@@ -4,20 +4,24 @@ import {
 import {
   TransformerContextProvider,
   TransformerSchemaVisitStepContextProvider,
+  TransformerTransformSchemaStepContextProvider,
 } from '@aws-amplify/graphql-transformer-interfaces';
-import { DynamoDbDataSource } from '@aws-cdk/aws-appsync';
+import { DynamoDbDataSource, LambdaDataSource, CfnResolver, CfnDataSource } from '@aws-cdk/aws-appsync';
 import { Table } from '@aws-cdk/aws-dynamodb';
 import { IFunction } from '@aws-cdk/aws-lambda';
 import {
   CfnCondition, CfnParameter, Fn, IConstruct,
 } from '@aws-cdk/core';
-import { DirectiveNode, ObjectTypeDefinitionNode } from 'graphql';
+import { DirectiveNode, FieldDefinitionNode, ObjectTypeDefinitionNode } from 'graphql';
 import {
   ResourceConstants,
   ModelResourceIDs,
   graphqlName,
   plurality,
-  toUpper
+  toUpper,
+  makeField,
+  makeInputValueDefinition,
+  makeNamedType
 } from 'graphql-transformer-common';
 import { createParametersStack as createParametersInStack } from './cdk/create-cfnParameters';
 
@@ -27,6 +31,13 @@ import { AlgoliaDirectiveArgs, FieldList } from './directive-args';
 
 const STACK_NAME = 'AlgoliaStack';
 const directiveName = "algolia";
+const RESPONSE_MAPPING_TEMPLATE = `
+#if( $ctx.error )
+  $util.error($ctx.error.message, $ctx.error.type)
+#else
+  $util.parseJson($ctx.result)
+#end
+`;
 
 interface SearchableObjectTypeDefinition {
   node: ObjectTypeDefinitionNode;
@@ -90,8 +101,16 @@ export class AlgoliaTransformer extends TransformerPluginBase {
       lambdaRole,
     );
 
+    // add lambda as data source for the search queries
+    const dataSource = context.api.host.addLambdaDataSource(
+      `searchResolverDataSource`,
+      lambda,
+      {},
+      stack
+    );
+
     // creates event source mapping for each table
-    createSourceMappings(this.searchableObjectTypeDefinitions, context, lambda, parameterMap);
+    createSourceMappings(this.searchableObjectTypeDefinitions, context, lambda, parameterMap, dataSource);
   };
 
   object = (definition: ObjectTypeDefinitionNode, directive: DirectiveNode, ctx: TransformerSchemaVisitStepContextProvider): void => {
@@ -109,6 +128,27 @@ export class AlgoliaTransformer extends TransformerPluginBase {
     });
 
   };
+
+  transformSchema = (ctx: TransformerTransformSchemaStepContextProvider) => {
+    const fields: FieldDefinitionNode[] = [];
+
+    // For each model that has been annotated with @algolia
+    for (const model of this.searchableObjectTypeDefinitions) {
+
+      // Add the search query field to the schema
+      // e.g. searchBlogs(query: String): AWSJSON
+      fields.push(
+        makeField(
+          model.fieldName,
+          [makeInputValueDefinition("query", makeNamedType("String"))],
+          makeNamedType("AWSJSON"),
+        )
+      );
+    }
+
+    ctx.output.addQueryFields(fields);
+  };
+
 }
 
 const validateModelDirective = (object: ObjectTypeDefinitionNode): void => {
@@ -122,11 +162,11 @@ const validateModelDirective = (object: ObjectTypeDefinitionNode): void => {
   }
 }
 
-const getTable = (context: TransformerContextProvider, definition: ObjectTypeDefinitionNode): IConstruct => {
+const getTable = (context: TransformerContextProvider, definition: ObjectTypeDefinitionNode): {table:IConstruct, tableConfig:CfnDataSource.DynamoDBConfigProperty} => {
   const ddbDataSource = context.dataSources.get(definition) as DynamoDbDataSource;
   const tableName = ModelResourceIDs.ModelTableResourceID(definition.name.value);
   const table = ddbDataSource.ds.stack.node.findChild(tableName);
-  return table;
+  return {table, tableConfig: ddbDataSource.ds.dynamoDbConfig as CfnDataSource.DynamoDBConfigProperty};
 };
 
 const getDirectiveArguments = (directive: DirectiveNode): AlgoliaDirectiveArgs => {
@@ -137,13 +177,13 @@ const getDirectiveArguments = (directive: DirectiveNode): AlgoliaDirectiveArgs =
   }) as (AlgoliaDirectiveArgs);
 }
 
-const createSourceMappings = (searchableObjectTypeDefinitions: SearchableObjectTypeDefinition[], context: TransformerContextProvider, lambda: IFunction, parameterMap: Map<string, CfnParameter>): void => {
+const createSourceMappings = (searchableObjectTypeDefinitions: SearchableObjectTypeDefinition[], context: TransformerContextProvider, lambda: IFunction, parameterMap: Map<string, CfnParameter>, lambdaDataSource: LambdaDataSource): void => {
   const stack = context.stackManager.getStack(STACK_NAME);
   for (const def of searchableObjectTypeDefinitions) {
     const type = def.node.name.value;
     const openSearchIndexName = context.resourceHelper.getModelNameMapping(type);
-    const table = getTable(context, def.node);
-    const ddbTable = table as Table;
+    const tableData = getTable(context, def.node);
+    const ddbTable = tableData.table as Table;
     if (!ddbTable) {
       throw new Error('Failed to find ddb table for searchable');
     }
@@ -155,5 +195,27 @@ const createSourceMappings = (searchableObjectTypeDefinitions: SearchableObjectT
       throw new Error('tableStreamArn is required on ddb table ot create event source mappings');
     }
     createEventSourceMapping(stack, openSearchIndexName, lambda, parameterMap, ddbTable.tableStreamArn);
+
+    // Connect the resolver to the API
+    const resolver = new CfnResolver(
+      stack,
+      `${def.fieldNameRaw}SearchResolver`,
+      {
+        apiId: context.api.apiId,
+        fieldName: def.fieldName,
+        typeName: "Query",
+        kind: "UNIT",
+        dataSourceName: lambdaDataSource?.ds.attrName,
+        requestMappingTemplate: getRequestMappingTemplate(tableData.tableConfig.tableName),
+        responseMappingTemplate: RESPONSE_MAPPING_TEMPLATE,
+      }
+    );
+
+    // resolver.overrideLogicalId(resourceId);
+    context.api.addSchemaDependency(resolver);
   }
 }
+
+const getRequestMappingTemplate = (tableName:string) => `
+$util.toJson({ "version": "2018-05-29", "operation": "Invoke", "payload": $util.toJson({ "typeName": "Query", "tableName": "${tableName}", "arguments": $util.toJson($ctx.args) }) })
+`;
